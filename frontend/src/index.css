@@ -1,0 +1,82 @@
+@import "tailwindcss";
+
+@theme {
+    /* Cheerful & Civilized Palette */
+    --color-primary: #3b82f6;
+    --color-primary-dark: #2563eb;
+    --color-accent: #8b5cf6;
+
+    --color-slate-50: #f8fafc;
+    --color-slate-100: #f1f5f9;
+    --color-slate-200: #e2e8f0;
+    --color-slate-900: #0f172a;
+}
+
+@layer base {
+    body {
+        @apply bg-slate-50 text-slate-900 antialiased transition-colors duration-300;
+        font-family: 'Inter', system-ui, sans-serif;
+    }
+}
+
+/* RTL Helpers */
+[dir="rtl"] {
+    font-family: 'Inter', 'Noto Sans Arabic', system-ui, sans-serif;
+}
+
+/* Cheerful Mesh Gradient Background (Light Mode) */
+.bg-mesh {
+    background-color: #f8fafc;
+    background-image:
+        radial-gradient(at 0% 0%, hsla(213, 94%, 92%, 1) 0, transparent 50%),
+        radial-gradient(at 50% 0%, hsla(253, 94%, 92%, 1) 0, transparent 50%),
+        radial-gradient(at 100% 0%, hsla(180, 94%, 92%, 1) 0, transparent 50%),
+        radial-gradient(at 0% 100%, hsla(320, 94%, 92%, 1) 0, transparent 50%),
+        radial-gradient(at 100% 100%, hsla(213, 94%, 92%, 1) 0, transparent 50%);
+    background-attachment: fixed;
+}
+
+/* Light Glassmorphism Effect */
+.glass {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 8px 32px 0 rgba(148, 163, 184, 0.15);
+}
+
+.glass-input {
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(203, 213, 225, 0.5);
+    color: #0f172a;
+}
+
+.glass-input:focus {
+    background: white;
+    border-color: #3b82f6;
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.15);
+}
+
+/* Transitions */
+.sidebar-transition {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Animations */
+@keyframes float {
+    0% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-8px);
+    }
+
+    100% {
+        transform: translateY(0px);
+    }
+}
+
+.animate-float {
+    animation: float 6s ease-in-out infinite;
+}
