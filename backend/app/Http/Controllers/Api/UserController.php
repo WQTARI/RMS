@@ -30,6 +30,7 @@ class UserController extends Controller
             'phone' => ['nullable', 'string'],
             'password' => ['required', 'string', 'min:6'],
             'is_active' => ['nullable', 'boolean'],
+            'prep_section_id' => ['nullable', 'exists:prep_sections,id'],
             'role_ids' => ['nullable', 'array'],
             'role_ids.*' => ['exists:roles,id'],
         ]);
@@ -40,6 +41,7 @@ class UserController extends Controller
             'phone' => $data['phone'] ?? null,
             'password' => Hash::make($data['password']),
             'is_active' => $data['is_active'] ?? true,
+            'prep_section_id' => $data['prep_section_id'] ?? null,
         ]);
 
         if (!empty($data['role_ids'])) {
@@ -74,6 +76,7 @@ class UserController extends Controller
             'phone' => ['nullable', 'string'],
             'password' => ['nullable', 'string', 'min:6'],
             'is_active' => ['nullable', 'boolean'],
+            'prep_section_id' => ['nullable', 'exists:prep_sections,id'],
             'role_ids' => ['nullable', 'array'],
             'role_ids.*' => ['exists:roles,id'],
         ]);

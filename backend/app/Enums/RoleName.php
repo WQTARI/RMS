@@ -9,6 +9,8 @@ enum RoleName: string
     case Receptionist = 'Receptionist';
     case Kitchen = 'Kitchen';
     case Desserts = 'Desserts';
+    case Drinks = 'Drinks';
+    case Reception = 'Reception';
 
     public static function confirmable(): array
     {

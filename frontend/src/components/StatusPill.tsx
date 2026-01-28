@@ -11,6 +11,7 @@ const statusColors: Record<SupportedStatus, string> = {
   IN_PROGRESS: 'bg-indigo-500/10 text-indigo-600 border border-indigo-500/20',
   READY: 'bg-emerald-500 text-white border border-emerald-600 shadow-sm shadow-emerald-200',
   SERVED: 'bg-slate-100 text-slate-400 border border-slate-200 opacity-60',
+  CANCELLED: 'bg-rose-100 text-rose-700 border border-rose-200',
 }
 
 export const StatusPill = ({ status }: { status: SupportedStatus }) => {
