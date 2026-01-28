@@ -29,7 +29,7 @@ Statuses are modeled as PHP enums to eliminate invalid states and make transitio
 **Service-layer orchestration**  
 Core workflows (order creation, invoicing, reservation overlap checks, table status updates) are centralized in services, keeping controllers thin and behavior consistent.
 
-### 4) Kitchen Visibility & Pre‑Order Handling
+### 4) Kitchen Visibility & Pre‑Order Handlin
 Kitchen visibility is time-gated for pre-orders:
 
 Example timeline:
