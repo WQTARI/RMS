@@ -15,6 +15,7 @@ class PrepSectionsSeeder extends Seeder
         $sections = [
             'Kitchen',
             'Desserts',
+            'Drinks',
         ];
 
         foreach ($sections as $name) {

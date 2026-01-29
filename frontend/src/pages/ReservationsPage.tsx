@@ -10,6 +10,8 @@ import { Dialog } from '../components/Dialog'
 import { formatCurrency, formatLiteralTime } from '../utils/format'
 import type { Reservation } from '../types'
 import { useAuth } from '../context/AuthContext'
+import { Calendar, Clock, Users } from 'lucide-react'
+import { StatusPill } from '../components/StatusPill'
 
 type FilterStatus = 'TODAY' | 'UPCOMING' | 'COMPLETED' | 'CANCELLED' | 'ALL'
 
@@ -139,14 +141,15 @@ export const ReservationsPage = () => {
   }, [reservations, filter])
 
   return (
-    <div className="min-h-screen bg-slate-50/50 pb-12">
+    <div className="pb-20 space-y-12 animate-in fade-in duration-700">
       <PageHeader title={t('nav.bookings')} subtitle={t('common.operational_center')} />
 
-      <div className="grid gap-6 px-4 lg:grid-cols-[1fr,3fr]">
-        <div className="space-y-6">
+      <div className="grid gap-12 xl:grid-cols-[400px,1fr] items-start">
+        {/* 1. Aura Reservation Form Sidebar */}
+        <div className="space-y-8 h-fit">
           {canManageReservations && (
             <form
-              className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+              className="glass rounded-[3rem] p-10 lg:p-12 space-y-8 relative overflow-hidden group shadow-2xl shadow-indigo-500/5 border-white/40"
               onSubmit={(e) => {
                 e.preventDefault()
                 createMutation.mutate({
@@ -157,148 +160,237 @@ export const ReservationsPage = () => {
                 })
               }}
             >
-              <h2 className="text-xl font-bold text-slate-900 mb-4">{t('common.new_res')}</h2>
-              {actionError && <p className="mb-4 text-sm font-bold text-rose-500 bg-rose-50 p-3 rounded-xl">{actionError}</p>}
-              <div className="grid gap-4">
-                <input className="w-full rounded-xl border border-slate-200 p-4 text-base focus:ring-2 focus:ring-indigo-500 font-bold" placeholder={t('common.customer_name')} value={formState.customer_name} onChange={e => setFormState(p => ({ ...p, customer_name: e.target.value }))} required />
-                <input className="w-full rounded-xl border border-slate-200 p-4 text-base font-bold" placeholder={t('common.phone')} value={formState.phone} onChange={e => setFormState(p => ({ ...p, phone: e.target.value }))} required />
-                <div className="space-y-1.5">
-                  <label className="text-sm font-black text-slate-400 uppercase tracking-widest leading-none">{t('common.date_time')}</label>
-                  <input type="datetime-local" className="w-full rounded-xl border border-slate-200 p-4 text-base font-bold" value={formState.date_time} onChange={e => setFormState(p => ({ ...p, date_time: e.target.value }))} required />
+              <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-[60px] -translate-y-1/2 translate-x-1/2" />
+
+              <h2 className="text-2xl font-black text-slate-900 tracking-tighter mb-2">{t('common.new_res')}</h2>
+
+              {actionError && (
+                <div className="p-4 rounded-2xl bg-accent/10 border border-accent/20 text-accent-dark text-xs font-black uppercase tracking-widest animate-pulse">
+                  {actionError}
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <input type="number" placeholder={t('common.guests')} className="rounded-xl border border-slate-200 p-4 text-base font-bold" value={formState.number_of_guests} onChange={e => setFormState(p => ({ ...p, number_of_guests: Number(e.target.value) }))} required />
-                  <input type="number" placeholder={t('common.minutes')} className="rounded-xl border border-slate-200 p-4 text-base font-bold" value={formState.duration_minutes} onChange={e => setFormState(p => ({ ...p, duration_minutes: Number(e.target.value) }))} />
+              )}
+
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <label className="field-label">{t('common.customer_name')}</label>
+                  <input className="glass-input" placeholder="e.g. John Doe" value={formState.customer_name} onChange={e => setFormState(p => ({ ...p, customer_name: e.target.value }))} required />
                 </div>
-                <select className="w-full rounded-xl border border-slate-200 p-4 text-base font-bold bg-white" value={formState.table_id} onChange={e => setFormState(p => ({ ...p, table_id: e.target.value }))} required>
-                  <option value="">{t('common.select_table')}</option>
-                  {tables.map(t_item => <option key={t_item.id} value={t_item.id}>{t_item.name} ({t_item.section?.name})</option>)}
-                </select>
-                <textarea className="w-full rounded-xl border border-slate-200 p-4 text-base font-bold" placeholder={t('common.notes')} value={formState.notes} onChange={e => setFormState(p => ({ ...p, notes: e.target.value }))} rows={2} />
-                <button type="submit" disabled={createMutation.isPending} className="w-full rounded-xl bg-slate-900 py-4 font-black uppercase tracking-widest text-white hover:bg-slate-800 disabled:opacity-50 shadow-xl shadow-slate-200 transition-all active:scale-[0.98]">
-                  {createMutation.isPending ? t('common.loading') : t('common.create_res')}
+
+                <div className="space-y-2">
+                  <label className="field-label">{t('common.phone')}</label>
+                  <input className="glass-input" placeholder="05XXXXXXXX" value={formState.phone} onChange={e => setFormState(p => ({ ...p, phone: e.target.value }))} required />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="field-label">{t('common.guests')}</label>
+                    <input type="number" className="glass-input" value={formState.number_of_guests} onChange={e => setFormState(p => ({ ...p, number_of_guests: Number(e.target.value) }))} required />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="field-label">{t('common.minutes')}</label>
+                    <input type="number" className="glass-input" value={formState.duration_minutes} onChange={e => setFormState(p => ({ ...p, duration_minutes: Number(e.target.value) }))} />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="field-label">{t('common.date_time')}</label>
+                  <input type="datetime-local" className="glass-input" value={formState.date_time} onChange={e => setFormState(p => ({ ...p, date_time: e.target.value }))} required />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="field-label">{t('common.select_table')}</label>
+                  <select className="glass-input appearance-none bg-white/30" value={formState.table_id} onChange={e => setFormState(p => ({ ...p, table_id: e.target.value }))} required>
+                    <option value="">{t('common.select_table')}</option>
+                    {tables.map(t_item => <option key={t_item.id} value={t_item.id}>{t_item.name} ({t_item.section?.name})</option>)}
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="field-label">{t('common.notes')}</label>
+                  <textarea className="glass-input resize-none py-4" placeholder="..." value={formState.notes} onChange={e => setFormState(p => ({ ...p, notes: e.target.value }))} rows={2} />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={createMutation.isPending}
+                  className="btn-aura w-full group/btn"
+                >
+                  <span className="relative z-10 flex items-center gap-2">
+                    {createMutation.isPending ? t('common.loading') : t('common.create_res')}
+                  </span>
+                  <div className="absolute inset-0 bg-white/20 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-500" />
                 </button>
               </div>
             </form>
           )}
         </div>
 
-        <div className="space-y-4">
-          <div className="flex items-center justify-between bg-white p-2 rounded-2xl border border-slate-200 shadow-sm">
-            <div className="flex gap-1 overflow-x-auto no-scrollbar max-w-[70%]">
+        {/* 2. Aura Reservations List */}
+        <div className="space-y-10">
+          <div className="flex flex-col sm:flex-row items-center justify-between bg-white/40 backdrop-blur-xl p-3 sm:p-4 rounded-[2.5rem] border border-white/60 shadow-xl shadow-indigo-500/5 group gap-4">
+            <div className="flex gap-2 overflow-x-auto no-scrollbar px-2 w-full sm:w-auto">
               {(['TODAY', 'UPCOMING', 'COMPLETED', 'CANCELLED', 'ALL'] as FilterStatus[]).map(f => (
-                <button key={f} onClick={() => setFilter(f)} className={`whitespace-nowrap px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${filter === f ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50'}`}>{t(`common.${f.toLowerCase()}`)}</button>
+                <button
+                  key={f}
+                  onClick={() => setFilter(f)}
+                  className={`whitespace-nowrap px-8 py-3.5 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all duration-500 ${filter === f
+                    ? 'bg-primary text-white shadow-lg shadow-primary/30 scale-105'
+                    : 'text-slate-500 hover:bg-white/60 hover:text-primary'}
+                  `}
+                >
+                  {t(`common.${f.toLowerCase()}`)}
+                </button>
               ))}
             </div>
-            <div className="px-4 text-sm font-bold text-slate-400">{filteredReservations.length} {t('common.bookings')}</div>
+            <div className="hidden sm:flex items-center gap-3 px-6 py-3 rounded-2xl bg-white/50 border border-white/60">
+              <span className="size-2 rounded-full bg-primary animate-pulse" />
+              <span className="text-xs font-black text-slate-600 uppercase tracking-widest">{filteredReservations.length} {t('common.bookings')}</span>
+            </div>
           </div>
 
-          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-slate-50/50 border-bottom border-slate-100 italic">
-                    <th className="px-6 py-5 text-sm font-black uppercase tracking-wider text-slate-400">{t('common.time_customer')}</th>
-                    <th className="px-6 py-5 text-sm font-black uppercase tracking-wider text-slate-400">{t('common.guests_table')}</th>
-                    <th className="px-6 py-5 text-sm font-black uppercase tracking-wider text-slate-400">{t('common.status')}</th>
-                    <th className="px-6 py-5 text-sm font-black uppercase tracking-wider text-slate-400 text-right">{t('common.actions_header')}</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {reservationsLoading ? (
-                    <tr><td colSpan={4} className="px-6 py-12 text-center text-slate-400 italic">{t('common.finding_bookings')}</td></tr>
-                  ) : filteredReservations.length === 0 ? (
-                    <tr><td colSpan={4} className="px-6 py-12 text-center text-slate-400 italic">{t('common.no_bookings_found')}</td></tr>
-                  ) : (
-                    filteredReservations.map((res) => (
-                      <tr key={res.id} className="group hover:bg-slate-50/50 transition-colors">
-                        <td className="px-6 py-5">
-                          <div className="text-base font-black text-slate-900">{formatLiteralTime(res.date_time)}</div>
-                          <div className="text-base font-bold text-slate-600">{res.customer_name}</div>
-                          <div className="text-xs font-bold text-slate-400 mt-1">{res.phone}</div>
-                        </td>
-                        <td className="px-6 py-5">
-                          <div className="flex items-center gap-2">
-                            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 text-xs font-black text-slate-600">{res.number_of_guests}</span>
-                            <span className="text-base font-black text-slate-700">{res.table?.name}</span>
-                          </div>
-                          <div className="text-xs font-bold text-slate-400 mt-1">{res.table?.section?.name}</div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <StatusBadge status={res.status} />
-                        </td>
-                        <td className="px-6 py-5 text-right">
-                          <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            {res.status === 'CREATED' && (
-                              <button onClick={() => statusMutation.mutate({ id: res.id, status: 'ARRIVED' })} className="rounded-xl bg-indigo-50 px-4 py-2 text-sm font-black text-indigo-600 hover:bg-indigo-100 uppercase tracking-widest transition-all">{t('common.arrived')}</button>
-                            )}
-                            {res.status === 'ARRIVED' && (
-                              <button onClick={() => setConvertItem(res)} className="rounded-xl bg-emerald-50 px-4 py-2 text-sm font-black text-emerald-600 hover:bg-emerald-100 uppercase tracking-widest transition-all">{t('common.seat_guest')}</button>
-                            )}
-                            {res.status === 'SEATED' && (
-                              <button onClick={() => statusMutation.mutate({ id: res.id, status: 'COMPLETED' })} className="rounded-xl bg-slate-100 px-4 py-2 text-sm font-black text-slate-800 hover:bg-slate-200 uppercase tracking-widest transition-all">{t('common.end_session')}</button>
-                            )}
-                            <button
-                              onClick={() => {
-                                setDialog({
-                                  isOpen: true,
-                                  title: t('common.delete'),
-                                  description: t('common.delete_confirm'),
-                                  type: 'danger',
-                                  onConfirm: () => deleteMutation.mutate(res.id)
-                                })
-                              }}
-                              className="rounded-xl bg-slate-100 px-4 py-2 text-sm font-black text-slate-600 hover:bg-rose-50 hover:text-rose-600 uppercase tracking-widest transition-all"
-                            >
-                              {t('common.delete')}
-                            </button>
-                            {res.status !== 'CANCELLED' && (
-                              <button onClick={() => statusMutation.mutate({ id: res.id, status: 'CANCELLED' })} className="rounded-xl bg-slate-100 px-4 py-2 text-sm font-black text-slate-600 hover:bg-rose-50 hover:text-rose-600 uppercase tracking-widest transition-all">{t('common.cancel')}</button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
+          <div className="grid gap-8 sm:grid-cols-1 xl:grid-cols-2">
+            {reservationsLoading ? (
+              <div className="col-span-full flex flex-col items-center justify-center py-32 text-slate-400">
+                <div className="h-16 w-16 animate-spin rounded-[2rem] border-4 border-slate-100 border-t-primary mb-8" />
+                <p className="text-xs font-black uppercase tracking-[0.5em] animate-pulse">{t('common.finding_bookings')}</p>
+              </div>
+            ) : filteredReservations.length === 0 ? (
+              <div className="col-span-full flex flex-col items-center justify-center py-32 glass rounded-[3rem] text-slate-400 border-dashed border-2">
+                <Calendar className="size-16 mb-6 opacity-20" />
+                <p className="text-xs font-black uppercase tracking-[0.5em]">{t('common.no_bookings_found')}</p>
+              </div>
+            ) : (
+              filteredReservations.map((res, idx) => (
+                <div
+                  key={res.id}
+                  className="group relative glass rounded-[3rem] p-8 transition-all duration-700 hover:-translate-y-3 hover:bg-white/60 hover:shadow-indigo-500/10 animate-in fade-in slide-in-from-bottom border-white/60 shadow-xl shadow-slate-200/50"
+                  style={{ animationDelay: `${idx * 100}ms`, animationFillMode: 'both' }}
+                >
+                  <div className="flex items-start justify-between mb-8">
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-3">
+                        <div className="bg-primary/10 text-primary px-4 py-2 rounded-xl text-lg font-black tracking-tight flex items-center gap-2">
+                          <Clock className="size-4" />
+                          {formatLiteralTime(res.date_time)}
+                        </div>
+                      </div>
+                      <h3 className="text-3xl font-black text-slate-900 truncate tracking-tighter">{res.customer_name}</h3>
+                      <p className="text-xs font-black text-slate-400 uppercase tracking-widest">{res.phone}</p>
+                    </div>
+                    <StatusPill status={res.status as any} />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 mb-8">
+                    <div className="bg-white/30 backdrop-blur-md rounded-[2rem] p-6 border border-white/60 group-hover:bg-white/60 transition-colors">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">{t('common.guests_table')}</p>
+                      <div className="flex items-center gap-4">
+                        <div className="size-10 rounded-xl bg-slate-900/5 flex items-center justify-center text-slate-700 font-black">
+                          {res.number_of_guests}
+                        </div>
+                        <div className="font-black text-slate-900 tracking-tighter text-lg">
+                          {res.table?.name}
+                          <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest leading-none mt-1">{res.table?.section?.name}</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="bg-white/30 backdrop-blur-md rounded-[2rem] p-6 border border-white/60 group-hover:bg-white/60 transition-colors">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">{t('nav.floor_plan')}</p>
+                      <div className="flex items-center gap-4">
+                        <div className="size-10 rounded-xl bg-primary/5 flex items-center justify-center text-primary">
+                          <Users className="size-5" />
+                        </div>
+                        <div className="font-black text-slate-900 tracking-tighter leading-tight">
+                          {t('common.operational_center')}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap justify-end gap-3 pt-4 border-t border-white/40">
+                    {res.status === 'CREATED' && (
+                      <button onClick={() => statusMutation.mutate({ id: res.id, status: 'ARRIVED' })} className="px-6 py-3 rounded-xl bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all duration-500 shadow-lg shadow-primary/5">{t('common.arrived')}</button>
+                    )}
+                    {res.status === 'ARRIVED' && (
+                      <button onClick={() => setConvertItem(res)} className="px-6 py-3 rounded-xl bg-emerald-500/10 text-emerald-600 text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500 hover:text-white transition-all duration-500 shadow-lg shadow-emerald-500/5">{t('common.seat_guest')}</button>
+                    )}
+                    {res.status === 'SEATED' && (
+                      <button onClick={() => statusMutation.mutate({ id: res.id, status: 'COMPLETED' })} className="px-6 py-3 rounded-xl bg-slate-100 text-slate-600 text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 hover:text-white transition-all duration-500">{t('common.end_session')}</button>
+                    )}
+
+                    <button
+                      onClick={() => {
+                        setDialog({
+                          isOpen: true,
+                          title: t('common.delete'),
+                          description: t('common.delete_confirm'),
+                          type: 'danger',
+                          onConfirm: () => deleteMutation.mutate(res.id)
+                        })
+                      }}
+                      className="px-6 py-3 rounded-xl bg-slate-50 text-slate-400 text-[10px] font-black uppercase tracking-widest hover:bg-accent/10 hover:text-accent-dark transition-all duration-500"
+                    >
+                      {t('common.delete')}
+                    </button>
+
+                    {res.status !== 'CANCELLED' && (
+                      <button onClick={() => statusMutation.mutate({ id: res.id, status: 'CANCELLED' })} className="px-6 py-3 rounded-xl bg-slate-50 text-slate-400 text-[10px] font-black uppercase tracking-widest hover:bg-accent/10 hover:text-accent-dark transition-all duration-500">{t('common.cancel')}</button>
+                    )}
+                  </div>
+
+                  {/* Dynamic Glass Glow */}
+                  <div className="absolute -bottom-10 -right-10 size-40 bg-primary/10 rounded-full blur-[80px] opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>
 
       {convertItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-lg rounded-3xl bg-white p-8 shadow-2xl animate-in zoom-in-95">
-            <h3 className="text-2xl font-bold text-slate-900">{t('common.seat_title', { name: convertItem.customer_name })}</h3>
-            <p className="text-slate-500 text-sm mt-1">{t('common.seat_hint', { table: convertItem.table?.name })}</p>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 sm:p-4 backdrop-blur-2xl bg-slate-900/40 animate-in fade-in duration-500">
+          <div className="w-full max-w-2xl glass rounded-[4rem] p-12 sm:p-14 shadow-[0_40px_100px_-20px_rgba(108,93,211,0.3)] animate-in zoom-in-95 duration-500 border-white/60 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2" />
 
-            <div className="mt-6 space-y-3 max-h-[40vh] overflow-y-auto pr-2">
+            <h3 className="text-4xl font-black text-slate-900 tracking-tighter mb-4">{t('common.seat_title', { name: convertItem.customer_name })}</h3>
+            <p className="text-slate-500 text-sm font-black uppercase tracking-widest opacity-60 mb-10 pb-6 border-b border-white/40">{t('common.seat_hint', { table: convertItem.table?.name })}</p>
+
+            <div className="space-y-6 max-h-[50vh] overflow-y-auto no-scrollbar pr-2 mb-10">
               {convertLines.map((line, idx) => (
-                <div key={idx} className="flex gap-2">
-                  <select className="flex-1 rounded-xl border border-slate-200 p-4 text-base font-bold bg-white" value={line.menu_item_id} onChange={e => {
-                    const n = [...convertLines]; n[idx].menu_item_id = Number(e.target.value); setConvertLines(n);
-                  }}>
-                    <option value={0}>{t('common.select_area')}</option>
-                    {menuItems.map(m => <option key={m.id} value={m.id}>{m.name} ({formatCurrency(m.price)})</option>)}
-                  </select>
-                  <input type="number" min={1} className="w-20 rounded-xl border border-slate-200 p-4 text-base font-bold" value={line.quantity} onChange={e => {
-                    const n = [...convertLines]; n[idx].quantity = Number(e.target.value); setConvertLines(n);
-                  }} />
-                  <button onClick={() => setConvertLines(convertLines.filter((_, i) => i !== idx))} className="px-3 text-2xl text-rose-500 font-black">×</button>
+                <div key={idx} className="flex flex-col sm:flex-row gap-4 p-6 glass rounded-[2.5rem] border-white/40 group/item hover:bg-white/80 transition-all">
+                  <div className="flex-1 space-y-2">
+                    <label className="field-label">{t('common.select_area')}</label>
+                    <select className="glass-input h-14 bg-white/50" value={line.menu_item_id} onChange={e => {
+                      const n = [...convertLines]; n[idx].menu_item_id = Number(e.target.value); setConvertLines(n);
+                    }}>
+                      <option value={0}>{t('common.select_area')}</option>
+                      {menuItems.map(m => <option key={m.id} value={m.id}>{m.name} ({formatCurrency(m.price)})</option>)}
+                    </select>
+                  </div>
+                  <div className="w-full sm:w-28 space-y-2">
+                    <label className="field-label">QTY</label>
+                    <input type="number" min={1} className="glass-input h-14 bg-white/50 text-center" value={line.quantity} onChange={e => {
+                      const n = [...convertLines]; n[idx].quantity = Number(e.target.value); setConvertLines(n);
+                    }} />
+                  </div>
+                  <button onClick={() => setConvertLines(convertLines.filter((_, i) => i !== idx))} className="sm:self-end h-14 px-4 rounded-2xl text-accent hover:bg-accent/10 transition-colors font-black text-2xl">×</button>
                 </div>
               ))}
-              <button onClick={() => setConvertLines([...convertLines, { menu_item_id: 0, quantity: 1 }])} className="text-xs font-bold text-indigo-600 hover:underline">+ {t('common.add_item_btn')}</button>
+              <button
+                onClick={() => setConvertLines([...convertLines, { menu_item_id: 0, quantity: 1 }])}
+                className="w-full py-4 rounded-3xl border-2 border-dashed border-slate-200 text-xs font-black text-slate-400 uppercase tracking-[0.3em] hover:border-primary hover:text-primary transition-all bg-white/20"
+              >
+                + {t('common.add_item_btn')}
+              </button>
             </div>
 
-            <div className="mt-8 flex gap-3">
-              <button onClick={() => setConvertItem(null)} className="flex-1 rounded-2xl border border-slate-200 py-4 font-bold text-slate-600">{t('common.cancel')}</button>
+            <div className="flex gap-6">
+              <button onClick={() => setConvertItem(null)} className="flex-1 py-6 rounded-3xl glass border-white/60 text-xs font-black text-slate-500 uppercase tracking-widest hover:bg-white transition-all">{t('common.cancel')}</button>
               <button
                 onClick={() => {
                   const valid = convertLines.filter(l => l.menu_item_id > 0);
                   convertMutation.mutate({ id: convertItem.id, items: valid })
                 }}
-                className="flex-1 rounded-2xl bg-indigo-600 py-4 font-bold text-white shadow-lg shadow-indigo-100"
+                className="flex-1 py-6 rounded-3xl bg-emerald-500 text-white shadow-xl shadow-emerald-500/20 text-xs font-black uppercase tracking-widest hover:bg-emerald-600 transition-all active:scale-[0.98]"
               >
                 {t('common.seat_confirm')}
               </button>
@@ -316,22 +408,5 @@ export const ReservationsPage = () => {
         onConfirm={dialog.onConfirm}
       />
     </div>
-  )
-}
-
-const StatusBadge = ({ status }: { status: string | undefined }) => {
-  const { t } = useTranslation()
-  const styles: Record<string, string> = {
-    CREATED: 'bg-indigo-50 text-indigo-600',
-    ARRIVED: 'bg-amber-50 text-amber-600',
-    SEATED: 'bg-emerald-50 text-emerald-600',
-    CANCELLED: 'bg-rose-50 text-rose-600',
-    COMPLETED: 'bg-slate-100 text-slate-600',
-  }
-  const s = status || 'CREATED'
-  return (
-    <span className={`inline-flex rounded-full px-3 py-1 text-xs font-black uppercase tracking-widest ${styles[s] || styles.CREATED}`}>
-      {t(`status.${s.toLowerCase()}`)}
-    </span>
   )
 }

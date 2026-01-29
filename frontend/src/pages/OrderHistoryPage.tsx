@@ -37,14 +37,14 @@ export const OrderHistoryPage = () => {
     const orders = history?.data || []
 
     return (
-        <div className="min-h-screen bg-slate-50/50 pb-20">
+        <div className="pb-32">
             {/* Context Navigation */}
-            <div className="px-4 py-4">
+            <div className="px-10 py-8">
                 <button
                     onClick={() => navigate('/reports')}
-                    className="group flex items-center gap-2 text-xs font-black uppercase tracking-widest text-slate-400 hover:text-indigo-600 transition-colors"
+                    className="group glass flex items-center gap-4 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-indigo-600 hover:bg-white/80 transition-all duration-500 shadow-xl shadow-indigo-500/5 hover:-translate-x-2"
                 >
-                    <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+                    <ArrowLeft className="w-5 h-5" />
                     {t('common.back')}
                 </button>
             </div>
@@ -54,35 +54,34 @@ export const OrderHistoryPage = () => {
                 subtitle={t('common.historical_audit')}
             />
 
-            <div className="px-4 mt-8 space-y-6">
-
+            <div className="px-10 mt-12 space-y-10">
                 {/* Search & Filter Bar */}
-                <div className="bg-white rounded-[32px] p-6 border border-slate-200 shadow-sm flex flex-wrap gap-4 items-center">
-                    <div className="relative flex-1 min-w-[300px]">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <div className="glass rounded-[3rem] p-8 border-white/40 shadow-2xl shadow-indigo-500/5 flex flex-wrap gap-8 items-center bg-white/40 backdrop-blur-3xl">
+                    <div className="relative flex-1 min-w-[350px] group">
+                        <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
                         <input
                             type="text"
                             placeholder={t('reports.search_hint')}
-                            className="w-full pl-12 pr-4 py-4 bg-slate-50 border-none rounded-2xl text-sm font-bold placeholder:text-slate-400 focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                            className="w-full pl-16 pr-6 py-6 bg-white/60 border border-white/80 rounded-[2rem] text-sm font-black uppercase tracking-tight placeholder:text-slate-400 focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all duration-500 shadow-inner"
                             value={search}
                             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
                         />
                     </div>
 
-                    <div className="flex items-center gap-2 bg-slate-50 p-2 rounded-2xl">
-                        <div className="flex items-center gap-2 px-3 border-r border-slate-200">
-                            <Calendar className="w-4 h-4 text-slate-400" />
+                    <div className="flex items-center gap-4 bg-white/60 p-2.5 rounded-[2rem] border border-white/80 shadow-inner">
+                        <div className="flex items-center gap-3 px-5 border-r border-white/60">
+                            <Calendar className="w-5 h-5 text-indigo-500" />
                             <input
                                 type="date"
-                                className="bg-transparent border-none text-xs font-black uppercase outline-none p-0 cursor-pointer"
+                                className="bg-transparent border-none text-[11px] font-black uppercase tracking-widest outline-none p-0 cursor-pointer text-slate-600"
                                 value={startDate}
                                 onChange={(e) => { setStartDate(e.target.value); setPage(1); }}
                             />
                         </div>
-                        <div className="flex items-center gap-2 px-3">
+                        <div className="flex items-center gap-3 px-5">
                             <input
                                 type="date"
-                                className="bg-transparent border-none text-xs font-black uppercase outline-none p-0 cursor-pointer"
+                                className="bg-transparent border-none text-[11px] font-black uppercase tracking-widest outline-none p-0 cursor-pointer text-slate-600"
                                 value={endDate}
                                 onChange={(e) => { setEndDate(e.target.value); setPage(1); }}
                             />
@@ -92,7 +91,7 @@ export const OrderHistoryPage = () => {
                     {(search || startDate || endDate) && (
                         <button
                             onClick={() => { setSearch(''); setStartDate(''); setEndDate(''); setPage(1); }}
-                            className="px-6 py-4 bg-rose-50 text-rose-600 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-rose-100 transition-colors"
+                            className="px-10 py-6 bg-rose-500 text-white rounded-[2rem] text-[10px] font-black uppercase tracking-[0.2em] shadow-2xl shadow-rose-500/30 hover:bg-rose-600 hover:scale-105 active:scale-95 transition-all duration-500"
                         >
                             {t('common.clear_filters')}
                         </button>
@@ -100,81 +99,91 @@ export const OrderHistoryPage = () => {
                 </div>
 
                 {/* Orders List */}
-                <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
+                <div className="grid gap-8 lg:grid-cols-2 xl:grid-cols-3">
                     {isLoading ? (
                         Array.from({ length: 6 }).map((_, i) => (
-                            <div key={i} className="h-64 bg-white rounded-[32px] border border-slate-100 animate-pulse" />
+                            <div key={i} className="aspect-[4/5] bg-white/20 rounded-[3rem] animate-pulse border border-white/40" />
                         ))
                     ) : isError ? (
-                        <div className="col-span-full py-20 text-center">
-                            <p className="text-sm font-bold text-rose-500">{t('common.history_error')}</p>
+                        <div className="col-span-full py-32 text-center glass rounded-[3rem] border-dashed border-2 border-rose-200">
+                            <p className="text-sm font-black text-rose-500 uppercase tracking-widest">{t('common.history_error')}</p>
                         </div>
                     ) : orders.length === 0 ? (
-                        <div className="col-span-full py-20 text-center flex flex-col items-center gap-4">
-                            <Receipt className="w-12 h-12 text-slate-200" />
-                            <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">{t('common.no_records')}</p>
+                        <div className="col-span-full py-40 text-center flex flex-col items-center gap-10 glass rounded-[4rem] border-dashed border-2">
+                            <div className="size-32 rounded-[3.5rem] bg-slate-900/5 flex items-center justify-center">
+                                <Receipt className="size-20 text-slate-200" />
+                            </div>
+                            <p className="text-base font-black text-slate-400 uppercase tracking-[0.4em]">{t('common.no_records')}</p>
                         </div>
                     ) : (
                         orders.map((order) => {
                             const total = order.items.reduce((sum, i) => sum + i.price * i.quantity, 0)
+                            const statusColor = order.status === 'CLOSED' ? 'bg-emerald-500 shadow-emerald-500/40' : 'bg-slate-900 shadow-slate-900/40'
+
                             return (
                                 <div
                                     key={order.id}
-                                    className="group relative bg-white rounded-[32px] border border-slate-200 p-8 shadow-sm hover:shadow-xl transition-all hover:-translate-y-1 overflow-hidden"
+                                    className="group relative glass rounded-[3rem] border-white/60 p-10 shadow-2xl shadow-indigo-500/5 hover:-translate-y-3 transition-all duration-700 overflow-hidden"
                                 >
-                                    {/* Receipt Visual Polish */}
-                                    <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-50/50 rounded-bl-[100px] -mr-8 -mt-8 grayscale group-hover:grayscale-0 transition-all opacity-50" />
+                                    {/* Abstract Record Background */}
+                                    <div className="absolute -top-10 -right-10 size-48 bg-slate-900/5 rounded-full blur-[80px] pointer-events-none" />
+                                    <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity rotate-12">
+                                        <Hash className="size-32" />
+                                    </div>
 
-                                    <div className="relative z-10">
-                                        <div className="flex justify-between items-start mb-6">
-                                            <div className="space-y-1">
-                                                <div className="flex items-center gap-2 text-xs font-black uppercase text-indigo-600 tracking-tighter">
-                                                    <Hash className="w-3 h-3" /> {order.id}
+                                    <div className="relative z-10 h-full flex flex-col">
+                                        <div className="flex justify-between items-start mb-10">
+                                            <div className="space-y-2">
+                                                <div className="flex items-center gap-3 px-3 py-1 bg-slate-900 text-white rounded-full w-fit">
+                                                    <Hash className="size-3" />
+                                                    <span className="text-[10px] font-black uppercase tracking-widest">{order.id}</span>
                                                 </div>
-                                                <h3 className="text-2xl font-black text-slate-900 leading-none">
+                                                <h3 className="text-3xl font-black text-slate-900 tracking-tighter uppercase leading-none truncate max-w-[200px]">
                                                     {order.customer_name || t('common.walking_guest')}
                                                 </h3>
                                             </div>
-                                            <div className="bg-slate-900 text-white px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest">
+                                            <div className={`px-5 py-2.5 rounded-2xl text-[10px] font-black text-white uppercase tracking-[0.2em] shadow-xl ${statusColor}`}>
                                                 {order.status}
                                             </div>
                                         </div>
 
-                                        <div className="flex items-center gap-4 mb-8 text-xs font-bold text-slate-400 uppercase tracking-widest">
-                                            <div className="flex items-center gap-1.5">
-                                                <Receipt className="w-3.5 h-3.5" />
+                                        <div className="flex flex-wrap items-center gap-6 mb-10 pb-6 border-b border-white/80">
+                                            <div className="flex items-center gap-2.5 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                                <div className="size-7 rounded-lg bg-indigo-50 text-indigo-500 flex items-center justify-center"><Receipt className="size-4" /></div>
                                                 {t('common.area')}: {order.table?.name || '---'}
                                             </div>
-                                            <div className="flex items-center gap-1.5">
-                                                <Clock className="w-3.5 h-3.5" />
+                                            <div className="flex items-center gap-2.5 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                                <div className="size-7 rounded-lg bg-purple-50 text-purple-500 flex items-center justify-center"><Clock className="size-4" /></div>
                                                 {new Date(order.created_at).toLocaleDateString()}
                                             </div>
                                         </div>
 
-                                        <div className="space-y-3 mb-8 border-y border-slate-50 py-6">
+                                        <div className="flex-1 space-y-5 mb-12">
                                             {order.items.map((item) => (
-                                                <div key={item.id} className="flex justify-between items-center text-xs font-bold">
-                                                    <span className="text-slate-700 flex items-center gap-2">
-                                                        <span className="w-6 h-6 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center text-xs font-black text-slate-400">
+                                                <div key={item.id} className="flex justify-between items-center group/item transition-all">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="size-8 rounded-xl bg-slate-900 text-white flex items-center justify-center text-[11px] font-black shadow-lg group-hover/item:scale-110 transition-transform">
                                                             {item.quantity}
+                                                        </div>
+                                                        <span className="text-sm font-black text-slate-800 uppercase tracking-tight group-hover/item:text-indigo-600 transition-colors">
+                                                            {item.menu_item?.name || 'Deleted Item'}
                                                         </span>
-                                                        {item.menu_item?.name || 'Deleted Item'}
-                                                    </span>
-                                                    <span className="text-slate-500 tabular-nums">
+                                                    </div>
+                                                    <span className="text-xs font-black text-slate-400 tabular-nums">
                                                         {formatCurrency(item.price * item.quantity)}
                                                     </span>
                                                 </div>
                                             ))}
                                         </div>
 
-                                        <div className="flex justify-between items-end">
-                                            <div>
-                                                <p className="text-xs font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{t('common.grand_total')}</p>
-                                                <div className="text-3xl font-black text-slate-900 leading-none tabular-nums">
+                                        <div className="mt-auto pt-8 border-t border-white/80 flex justify-between items-end">
+                                            <div className="space-y-1">
+                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] leading-none">{t('common.grand_total')}</p>
+                                                <div className="text-4xl font-black text-slate-900 tracking-tighter tabular-nums leading-none">
                                                     {formatCurrency(total)}
                                                 </div>
                                             </div>
-                                            <div className="text-xs font-bold text-slate-300 italic">
+                                            <div className="text-[9px] font-black text-slate-300 uppercase tracking-widest tabular-nums bg-white/40 px-3 py-1.5 rounded-xl border border-white/60">
                                                 {t('common.paid_at')} {new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                             </div>
                                         </div>
@@ -187,29 +196,35 @@ export const OrderHistoryPage = () => {
 
                 {/* Advanced Pagination */}
                 {history && history.last_page > 1 && (
-                    <div className="flex justify-center items-center gap-6 mt-12 bg-white rounded-full p-4 border border-slate-200 shadow-sm w-fit mx-auto">
-                        <button
-                            disabled={page === 1}
-                            onClick={() => { setPage(p => p - 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                            className="p-3 rounded-full hover:bg-slate-50 border border-slate-100 disabled:opacity-30 disabled:hover:bg-transparent transition-all"
-                        >
-                            <ChevronLeft className="w-5 h-5 text-slate-600" />
-                        </button>
+                    <div className="fixed bottom-12 left-1/2 -translate-x-1/2 z-50">
+                        <div className="glass flex justify-center items-center gap-10 px-10 py-5 rounded-[2.5rem] border-white/60 shadow-2xl shadow-indigo-900/10 backdrop-blur-3xl">
+                            <button
+                                disabled={page === 1}
+                                onClick={() => { setPage(p => p - 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                                className="size-14 rounded-2xl glass hover:bg-white text-slate-600 disabled:opacity-20 border-white/60 transition-all duration-500 flex items-center justify-center hover:scale-110 active:scale-90"
+                            >
+                                <ChevronLeft className="size-6" />
+                            </button>
 
-                        <div className="flex items-center gap-2">
-                            <span className="text-xs font-black uppercase text-slate-400">{t('common.page')}</span>
-                            <span className="text-sm font-black text-slate-900">{history.current_page}</span>
-                            <span className="text-xs font-black uppercase text-slate-200">{t('common.of')}</span>
-                            <span className="text-sm font-black text-slate-400">{history.last_page}</span>
+                            <div className="flex items-center gap-5">
+                                <div className="space-y-0.5 text-center">
+                                    <div className="text-[10px] font-black uppercase text-slate-400 tracking-[0.3em]">{t('common.page')}</div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-2xl font-black text-indigo-600 tabular-nums">{history.current_page}</span>
+                                        <span className="text-xs font-black uppercase text-slate-300">/</span>
+                                        <span className="text-xl font-black text-slate-400 tabular-nums">{history.last_page}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button
+                                disabled={page === history.last_page}
+                                onClick={() => { setPage(p => p + 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                                className="size-14 rounded-2xl glass hover:bg-white text-slate-600 disabled:opacity-20 border-white/60 transition-all duration-500 flex items-center justify-center hover:scale-110 active:scale-90"
+                            >
+                                <ChevronRight className="size-6" />
+                            </button>
                         </div>
-
-                        <button
-                            disabled={page === history.last_page}
-                            onClick={() => { setPage(p => p + 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                            className="p-3 rounded-full hover:bg-slate-50 border border-slate-100 disabled:opacity-30 disabled:hover:bg-transparent transition-all"
-                        >
-                            <ChevronRight className="w-5 h-5 text-slate-600" />
-                        </button>
                     </div>
                 )}
             </div>

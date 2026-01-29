@@ -2,24 +2,23 @@
 @import "tailwindcss";
 
 @theme {
-    /* Updated Palette per Prompt #1 */
+    /* Aura Design System Palette */
     --color-primary: #6C5DD3;
-    /* Lavender-Purple */
     --color-primary-dark: #5a4cb3;
     --color-primary-light: #f3f2ff;
 
-    --color-secondary: #0f172a;
-    --color-accent: #8b5cf6;
+    --color-secondary: #0F172A;
+    --color-accent: #FF758F;
+    /* Soft Rose Accent */
+    --color-accent-dark: #e6667e;
 
-    --color-bg-body: #f8fafc;
-    --color-bg-card: #ffffff;
+    --color-bg-body: #f0f2ff;
+    --color-bg-card: rgba(255, 255, 255, 0.4);
 
-    /* Darker contrast for better readability */
-    --color-text-main: #0f172a;
-    --color-text-secondary: #334155;
-    /* Darker Slate (Slate-700) */
+    --color-text-main: #0F172A;
+    --color-text-secondary: #475569;
 
-    --color-border: #e2e8f0;
+    --color-border-glass: rgba(255, 255, 255, 0.3);
 }
 
 @layer base {
@@ -34,41 +33,40 @@
         font-family: 'Cairo', sans-serif !important;
     }
 
-    /* Card Architecture: 24px radius, multi-layered shadow */
-    .card {
-        @apply bg-white border border-slate-100 rounded-[24px] transition-all duration-300;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.05), 0 20px 40px -20px rgba(108, 93, 211, 0.15);
+    /* Aura Ultra-Glass Architecture */
+    .glass {
+        @apply bg-white/40 backdrop-blur-2xl border border-white/60 shadow-2xl shadow-indigo-500/5;
     }
 
-    .card:hover {
-        @apply -translate-y-1;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08), 0 30px 60px -15px rgba(108, 93, 211, 0.2);
+    .glass-dark {
+        @apply bg-slate-900/10 backdrop-blur-xl border border-white/10;
     }
 
-    /* Compact Glass Input - Increased padding for touch optimization */
+    /* Standardized Aura Card */
+    .card-aura {
+        @apply glass rounded-[3rem] transition-all duration-500 hover:-translate-y-2 hover:bg-white/60 hover:shadow-indigo-500/10;
+    }
+
+    /* Compact Glass Input - Aura Style */
     .glass-input {
-        @apply w-full bg-white/50 backdrop-blur-sm border border-slate-200 rounded-xl px-6 py-5 text-slate-900 placeholder:text-slate-400 outline-none transition-all duration-300;
+        @apply w-full bg-white/30 backdrop-blur-md border border-white/60 rounded-2xl px-6 py-5 text-slate-900 placeholder:text-slate-400 outline-none transition-all duration-500;
     }
 
-    /* 2px Colored Border-Glow on Focus */
     .glass-input:focus {
-        @apply border-primary ring-[3px] ring-primary/20 bg-white;
+        @apply border-primary ring-4 ring-primary/10 bg-white/80;
     }
 
-    /* Darker, Bolder Labels */
     .field-label {
-        @apply text-[14px] font-black text-slate-800 uppercase tracking-widest ml-1 mb-2 block;
+        @apply text-[11px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2 mb-3 block;
     }
 
     [dir="rtl"] .field-label {
-        @apply ml-0 mr-1 tracking-normal font-black text-[15px];
+        @apply ml-0 mr-2;
     }
 
-    /* Button Centering & Center-aligned icons */
-    .btn-primary {
-        @apply relative bg-gradient-to-r from-primary to-[#8b5cf6] text-white font-black px-10 py-5 rounded-2xl shadow-xl shadow-primary/20 hover:shadow-2xl hover:shadow-primary/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-300 flex items-center justify-center text-center gap-3 overflow-hidden;
+    .btn-aura {
+        @apply relative bg-primary text-white font-black px-10 py-5 rounded-2xl shadow-xl shadow-primary/20 hover:shadow-2xl hover:shadow-primary/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-300 flex items-center justify-center text-center gap-3 overflow-hidden;
     }
-
 }
 
 @layer utilities {
@@ -137,6 +135,28 @@
 
 .animate-float {
     animation: float 6s ease-in-out infinite;
+}
+
+/* Scrollbar Hide Utility */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* Hide Number Input Spinners (Global) */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type=number] {
+    -moz-appearance: textfield;
+    appearance: none;
 }
 
 /* Arabic font scaling adjustment */

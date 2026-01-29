@@ -56,7 +56,8 @@ export const SectionOrdersPage = () => {
 
     const currentSection = useMemo(() => {
         if (sectionId === 'all') return { name: t('common.all_sections') } as Partial<PrepSection>
-        return prepSections.find(s => s.id === parseInt(sectionId || '0'))
+        const sect = prepSections.find(s => s.id === parseInt(sectionId || '0'))
+        return sect || { name: sectionId?.toUpperCase() }
     }, [prepSections, sectionId, t])
 
     const {
@@ -120,42 +121,51 @@ export const SectionOrdersPage = () => {
                 <div className="grid gap-6 lg:grid-cols-2">
                     {tickets.map((order: any) => {
                         const elapsed = getElapsedMinutes(order.created_at, currentTime)
-                        const urgency = getUrgencyClasses(elapsed)
+                        const safeElapsed = isNaN(elapsed) || elapsed < 0 ? 0 : elapsed
+                        const urgency = getUrgencyClasses(safeElapsed)
+                        const tableName = order.table?.name || order.customer_name || t('pos.take_away')
+
                         return (
-                            <div key={order.id} className={`rounded-[32px] border-2 p-8 glass transition-all duration-500 shadow-xl ${urgency}`}>
-                                <div className="flex items-start justify-between mb-6">
-                                    <div>
-                                        <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">
-                                            {order.table?.name || `Table ${order.table_id}`}
+                            <div key={order.id} className={`rounded-[2.5rem] border border-white/40 p-10 glass transition-all duration-700 shadow-2xl hover:shadow-indigo-500/10 group ${urgency}`}>
+                                <div className="flex items-start justify-between mb-8">
+                                    <div className="space-y-1">
+                                        <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tighter">
+                                            {tableName}
                                         </h3>
-                                        <div className="flex items-center gap-2 mt-1">
-                                            <span className="text-xs font-black text-slate-400 uppercase">Order #{order.id}</span>
-                                            <span className="h-1 w-1 rounded-full bg-slate-300" />
-                                            <span className="text-xs font-black text-indigo-600 uppercase">{elapsed} {t('common.minutes')} {t('common.ago')}</span>
+                                        <div className="flex items-center gap-3">
+                                            <div className="px-3 py-1 rounded-full bg-slate-900 text-[10px] font-black text-white tracking-widest uppercase shadow-lg shadow-slate-900/20">
+                                                Order #{order.id}
+                                            </div>
+                                            <span className="h-1.5 w-1.5 rounded-full bg-slate-300" />
+                                            <span className="text-[11px] font-black text-indigo-600 uppercase tracking-widest bg-indigo-50 px-2 py-0.5 rounded-md">
+                                                {safeElapsed} {t('common.minutes')} {t('common.ago')}
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div className="space-y-4">
                                     {order.filteredItems.map((item: OrderItem) => (
-                                        <div key={item.id} className="bg-white/80 rounded-2xl p-5 border border-slate-100 shadow-sm flex items-center justify-between group hover:border-indigo-200 transition-all">
+                                        <div key={item.id} className="bg-white/60 backdrop-blur-md rounded-3xl p-6 border border-white/80 shadow-sm flex items-center justify-between group/line hover:border-indigo-200 hover:bg-white/90 transition-all duration-500">
                                             <div className="flex-1">
-                                                <div className="flex items-center gap-3">
-                                                    <span className="h-8 w-8 rounded-lg bg-slate-900 text-white flex items-center justify-center font-black text-sm">{item.quantity}x</span>
-                                                    <span className="text-lg font-black text-slate-800 uppercase tracking-tight">{item.menu_item?.name}</span>
+                                                <div className="flex items-center gap-4">
+                                                    <div className="size-10 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-black text-sm shadow-xl shadow-slate-950/20 group-hover/line:scale-110 transition-transform duration-500">
+                                                        {item.quantity}
+                                                    </div>
+                                                    <span className="text-xl font-black text-slate-800 uppercase tracking-tighter">{item.menu_item?.name}</span>
                                                 </div>
                                                 {item.notes && (
-                                                    <div className="mt-2 text-xs font-bold text-amber-600 bg-amber-50 px-3 py-1.5 rounded-xl border border-amber-100 inline-block">
-                                                        📝 {item.notes}
+                                                    <div className="mt-4 text-[10px] font-black text-amber-700 bg-amber-400/10 px-4 py-2 rounded-2xl border border-amber-400/20 inline-flex items-center gap-2">
+                                                        <span className="animate-pulse">📝</span> {item.notes}
                                                     </div>
                                                 )}
                                             </div>
-                                            <div className="flex flex-col items-end gap-3">
+                                            <div className="flex flex-col items-end gap-4">
                                                 <StatusPill status={item.status} />
                                                 <button
                                                     onClick={() => mutation.mutate({ id: item.id, status: nextStatus(item.status) })}
                                                     disabled={mutation.isPending}
-                                                    className="px-6 py-2.5 rounded-xl bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600 transition-all shadow-lg active:scale-95 disabled:opacity-50"
+                                                    className="px-8 py-3.5 rounded-2xl bg-slate-900 text-white text-[11px] font-black uppercase tracking-[0.2em] hover:bg-indigo-600 hover:shadow-2xl hover:shadow-indigo-500/40 transition-all duration-500 active:scale-95 disabled:opacity-50"
                                                 >
                                                     {item.status === 'PENDING' ? t('common.start_prep') : item.status === 'IN_PROGRESS' ? t('common.mark_ready') : t('common.serve')}
                                                 </button>

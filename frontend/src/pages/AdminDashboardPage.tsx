@@ -55,26 +55,28 @@ export const AdminDashboardPage = () => {
   ]
 
   return (
-    <div className="min-h-screen">
-      <div className="max-w-[1600px] mx-auto">
+    <div className="pb-32">
+      <div className="max-w-[1600px] mx-auto px-10">
         <PageHeader
           title={t('nav.management')}
           subtitle="System Configuration & Oversight"
         />
 
-        {/* Improved Tab Navigation */}
-        <div className="mt-6 mb-8 border-b border-slate-200">
-          <div className="flex gap-1 overflow-x-auto pb-1 no-scrollbar">
+        {/* High-Fidelity Pill Navigation */}
+        <div className="mt-8 mb-12 flex justify-center z-40">
+          <div className="glass flex gap-2 p-3 rounded-[2.5rem] shadow-2xl shadow-indigo-500/10 border-white/80 bg-white/60 backdrop-blur-3xl overflow-x-auto no-scrollbar">
             {sidebarItems.map((item) => (
               <button
                 key={item.key}
                 onClick={() => setActiveTab(item.key as AdminTab)}
-                className={`flex items-center gap-2 px-5 py-3 rounded-t-lg text-sm font-medium transition-all border-b-2 whitespace-nowrap ${activeTab === item.key
-                  ? 'border-indigo-600 text-indigo-700 bg-indigo-50/50'
-                  : 'border-transparent text-slate-500 hover:text-slate-900 hover:bg-slate-50'
+                className={`flex items-center gap-3 px-8 py-4 rounded-[2rem] text-[11px] font-black uppercase tracking-[0.2em] transition-all duration-500 whitespace-nowrap ${activeTab === item.key
+                  ? 'bg-slate-900 text-white shadow-2xl scale-105'
+                  : 'text-slate-500 hover:text-indigo-600 hover:bg-white/60'
                   }`}
               >
-                {item.icon}
+                <div className={`${activeTab === item.key ? 'text-indigo-400' : 'text-slate-400'}`}>
+                  {item.icon}
+                </div>
                 {item.label}
               </button>
             ))}
@@ -180,82 +182,150 @@ const MenuModule = ({ openConfirm, showError }: { openConfirm: (t: string, d: st
     , [items, categoryFilter])
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[380px,1fr]">
-      <div className="card p-6 h-fit sticky top-6">
-        <h3 className="text-sm font-bold text-slate-900 uppercase mb-5 tracking-wide flex items-center gap-2">
-          <Plus size={16} /> {t('admin.add_item')}
-        </h3>
-        <form className="space-y-4" onSubmit={handleCreate}>
+    <div className="grid gap-12 lg:grid-cols-[420px,1fr] items-start">
+      {/* Form Section */}
+      <div className="glass p-10 rounded-[3rem] border-white/60 shadow-2xl shadow-indigo-500/5 bg-white/40">
+        <div className="flex items-center gap-4 mb-10">
+          <div className="size-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-500/20">
+            <Plus size={24} />
+          </div>
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-slate-500 uppercase">Item Name</label>
-            <input className="input-field" placeholder="e.g. Cheese Burger" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required />
+            <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest leading-none">
+              {t('admin.add_item')}
+            </h3>
+            <div className="h-1 w-12 bg-gradient-to-r from-indigo-500 to-transparent rounded-full" />
+          </div>
+        </div>
+
+        <form className="space-y-8" onSubmit={handleCreate}>
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Item Name</label>
+            <input
+              className="w-full px-6 py-5 bg-white/60 border border-white/80 rounded-2xl text-sm font-black uppercase tracking-tight placeholder:text-slate-300 focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all duration-500 shadow-inner outline-none"
+              placeholder="e.g. Cheese Burger"
+              value={form.name}
+              onChange={e => setForm({ ...form, name: e.target.value })}
+              required
+            />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-500 uppercase">Price</label>
-              <input type="number" step="any" className="input-field" placeholder="0.00" value={form.price || ''} onChange={e => setForm({ ...form, price: Number(e.target.value) })} required />
+          <div className="grid grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Price</label>
+              <div className="relative">
+                <input
+                  type="number"
+                  step="any"
+                  className="w-full pl-10 pr-6 py-5 bg-white/60 border border-white/80 rounded-2xl text-sm font-black tracking-tight focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all duration-500 shadow-inner outline-none"
+                  placeholder="0.00"
+                  value={form.price || ''}
+                  onChange={e => setForm({ ...form, price: Number(e.target.value) })}
+                  required
+                />
+                <span className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400 font-black">€</span>
+              </div>
             </div>
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-500 uppercase">Prep (Min)</label>
-              <input type="number" className="input-field" placeholder="15" value={form.prep_time_minutes || ''} onChange={e => setForm({ ...form, prep_time_minutes: Number(e.target.value) })} required />
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Prep (Min)</label>
+              <input
+                type="number"
+                className="w-full px-6 py-5 bg-white/60 border border-white/80 rounded-2xl text-sm font-black tracking-tight focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all duration-500 shadow-inner outline-none"
+                placeholder="15"
+                value={form.prep_time_minutes || ''}
+                onChange={e => setForm({ ...form, prep_time_minutes: Number(e.target.value) })}
+                required
+              />
             </div>
           </div>
 
-          <div className="space-y-1">
-            <label className="text-xs font-semibold text-slate-500 uppercase">Prep Section</label>
-            <select className="input-field bg-white" value={form.prep_section_id || ''} onChange={e => setForm({ ...form, prep_section_id: Number(e.target.value) })}>
-              {!form.prep_section_id && <option value="">Select Section...</option>}
-              {prepSections?.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-            </select>
+          <div className="grid grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">{t('common.category')}</label>
+              <select className="w-full px-6 py-5 bg-white border border-white/80 rounded-2xl text-xs font-black uppercase tracking-widest focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all shadow-inner" value={form.category} onChange={e => setForm({ ...form, category: e.target.value as any })}>
+                <option value="FOOD">{t('common.food')}</option>
+                <option value="DESSERT">{t('common.dessert')}</option>
+                <option value="DRINK">{t('common.drink')}</option>
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Prep Section</label>
+              <select className="w-full px-6 py-5 bg-white border border-white/80 rounded-2xl text-xs font-black uppercase tracking-widest focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all shadow-inner" value={form.prep_section_id || ''} onChange={e => setForm({ ...form, prep_section_id: Number(e.target.value) })}>
+                {!form.prep_section_id && <option value="">Select Section...</option>}
+                {prepSections?.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+            </div>
           </div>
 
-          <div className="space-y-1">
-            <label className="text-xs font-semibold text-slate-500 uppercase">Image URL (Optional)</label>
-            <input className="input-field" placeholder="https://..." value={form.image_url || ''} onChange={e => setForm({ ...form, image_url: e.target.value })} />
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Image URL (Optional)</label>
+            <input className="w-full px-6 py-5 bg-white/60 border border-white/80 rounded-2xl text-xs font-bold focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all shadow-inner" placeholder="https://..." value={form.image_url || ''} onChange={e => setForm({ ...form, image_url: e.target.value })} />
           </div>
 
           <button
             type="submit"
             disabled={!form.prep_section_id || createMutation.isPending}
-            className={`btn-primary w-full mt-2 ${(!form.prep_section_id || createMutation.isPending) ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className="group w-full flex items-center justify-center gap-4 py-6 bg-slate-900 text-white rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] shadow-2xl hover:bg-indigo-600 hover:scale-105 active:scale-95 transition-all duration-500 disabled:opacity-30 disabled:hover:scale-100"
           >
-            <Plus size={18} />
+            {createMutation.isPending ? <RefreshCw className="size-5 animate-spin" /> : <Plus size={20} />}
             {createMutation.isPending ? t('common.loading') : t('admin.create_item_btn')}
           </button>
           {prepSections.length === 0 && (
-            <p className="text-[10px] text-rose-500 font-medium mt-1">
+            <p className="text-[10px] text-rose-500 font-bold mt-2 text-center uppercase tracking-widest animate-pulse">
               * Please create a Prep Section first.
             </p>
           )}
         </form>
       </div>
 
-      <div className="space-y-6">
-        <div className="flex gap-2 flex-wrap items-center bg-white p-2 rounded-xl border border-slate-200 w-fit">
-          {['ALL', ...Array.from(new Set(items.map(i => i.category))).filter(Boolean).sort()].map(c => (
-            <button key={c} onClick={() => setCategoryFilter(c)} className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${categoryFilter === c ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}>
-              {c === 'ALL' ? t('common.total') : c}
+      <div className="space-y-8 min-w-0">
+        <div className="glass flex gap-2 p-2 rounded-2xl border-white/60 shadow-xl shadow-indigo-500/5 w-fit overflow-x-auto overflow-y-hidden no-scrollbar">
+          {['ALL', 'FOOD', 'DESSERT', 'DRINK'].map(c => (
+            <button
+              key={c}
+              onClick={() => setCategoryFilter(c)}
+              className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-500 ${categoryFilter === c ? 'bg-indigo-600 text-white shadow-xl' : 'text-slate-500 hover:text-indigo-600 hover:bg-white'}`}
+            >
+              {c === 'ALL' ? t('common.total') : t(`common.${c.toLowerCase()}`)}
             </button>
           ))}
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {isLoading ? <p className="p-10 text-center text-slate-400 animate-pulse">{t('common.loading')}</p> : (filtered || []).map(item => (
-            <div key={item.id} className="card p-4 flex gap-4 hover:border-indigo-300 group">
-              <div className="h-20 w-20 rounded-lg bg-slate-100 overflow-hidden shrink-0 border border-slate-200">
-                {item.image_url ? <img src={item.image_url} className="h-full w-full object-cover" /> : <div className="h-full w-full flex items-center justify-center text-xs text-slate-400 font-bold">N/A</div>}
-              </div>
-              <div className="flex-1 min-w-0 flex flex-col justify-between">
-                <div>
-                  <h4 className="font-bold text-slate-900 truncate text-sm">{item.name}</h4>
-                  <div className="text-xs uppercase font-bold text-slate-400 mt-0.5">{t(`common.${item.category.toLowerCase()}`)} • {item.prep_section?.name}</div>
+        <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+          {isLoading ? (
+            Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="aspect-square bg-white/20 rounded-[2.5rem] animate-pulse border border-white/40" />
+            ))
+          ) : (filtered || []).map(item => (
+            <div key={item.id} className="group relative glass rounded-[2.5rem] p-6 border-white/80 hover:bg-white/80 transition-all duration-500 shadow-xl shadow-indigo-500/5 overflow-hidden">
+              <div className="flex gap-6 relative z-10">
+                <div className="size-24 rounded-2xl bg-white shadow-inner overflow-hidden shrink-0 border border-white/80">
+                  {item.image_url ? (
+                    <img src={item.image_url} className="size-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                  ) : (
+                    <div className="size-full flex items-center justify-center text-[10px] text-slate-300 font-black uppercase tracking-widest">No Img</div>
+                  )}
                 </div>
-                <div className="flex justify-between items-end mt-2">
-                  <div className="text-indigo-600 font-bold text-sm bg-indigo-50 px-2 py-0.5 rounded-md">{formatCurrency(item.price)}</div>
-                  <button onClick={() => openConfirm(t('common.delete'), `${t('common.delete_confirm')} (${item.name})`, () => deleteMutation.mutate(item.id))} className="text-slate-400 hover:text-rose-600 p-1 rounded-md transition-colors"><Trash2 size={16} /></button>
+                <div className="flex-1 min-w-0 flex flex-col justify-between py-1">
+                  <div>
+                    <h4 className="font-black text-slate-800 truncate text-base uppercase tracking-tight mb-1">{item.name}</h4>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[9px] uppercase font-black px-2 py-0.5 rounded-md bg-slate-900 text-white tracking-widest">{t(`common.${item.category.toLowerCase()}`)}</span>
+                      <span className="text-[9px] uppercase font-black text-slate-400 tracking-widest truncate">{item.prep_section?.name}</span>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center mt-4">
+                    <div className="text-indigo-600 font-black text-base tabular-nums">{formatCurrency(item.price)}</div>
+                    <button
+                      onClick={() => openConfirm(t('common.delete'), `${t('common.delete_confirm')} (${item.name})`, () => deleteMutation.mutate(item.id))}
+                      className="size-10 rounded-xl bg-white text-slate-300 hover:text-rose-600 hover:bg-rose-50 transition-all duration-300 flex items-center justify-center border border-white group-hover:shadow-lg"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
                 </div>
               </div>
+              {/* Decorative aura */}
+              <div className="absolute -bottom-10 -right-10 size-24 bg-indigo-500/5 rounded-full blur-3xl" />
             </div>
           ))}
         </div>
@@ -297,21 +367,40 @@ const TablesModule = ({ openConfirm, showError }: { openConfirm: (t: string, d: 
   }
 
   return (
-    <div className="space-y-8">
-      <div className="card p-6">
-        <h3 className="text-sm font-bold text-slate-900 uppercase mb-4 tracking-wide flex items-center gap-2"><Plus size={16} /> Add New Table</h3>
-        <div className="flex flex-wrap gap-4 items-end">
-          <div className="flex-1 min-w-[200px]">
-            <label className="text-xs font-semibold text-slate-500 uppercase mb-1 block">{t('common.table_name')}</label>
-            <input className="input-field" placeholder="e.g. T-12" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
+    <div className="space-y-12">
+      <div className="glass p-10 rounded-[3rem] border-white/60 shadow-2xl shadow-indigo-500/5 bg-white/40">
+        <div className="flex items-center gap-4 mb-10">
+          <div className="size-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-lg shadow-emerald-500/20">
+            <Plus size={24} />
           </div>
-          <div className="w-32">
-            <label className="text-xs font-semibold text-slate-500 uppercase mb-1 block">{t('common.capacity')}</label>
-            <input type="number" className="input-field" value={formData.capacity} onChange={e => setFormData({ ...formData, capacity: Number(e.target.value) })} />
+          <div className="space-y-1">
+            <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest leading-none">Add New Table</h3>
+            <div className="h-1 w-12 bg-gradient-to-r from-emerald-500 to-transparent rounded-full" />
           </div>
-          <div className="flex-1 min-w-[200px]">
-            <label className="text-xs font-semibold text-slate-500 uppercase mb-1 block">{t('common.area')}</label>
-            <select className="input-field bg-white" value={formData.section_id || ''} onChange={e => setFormData({ ...formData, section_id: Number(e.target.value) })}>
+        </div>
+
+        <div className="flex flex-wrap gap-8 items-end">
+          <div className="flex-1 min-w-[250px] space-y-2">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">{t('common.table_name')}</label>
+            <input
+              className="w-full px-6 py-5 bg-white/60 border border-white/80 rounded-2xl text-sm font-black uppercase tracking-tight placeholder:text-slate-300 focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all duration-500 shadow-inner outline-none"
+              placeholder="e.g. T-12"
+              value={formData.name}
+              onChange={e => setFormData({ ...formData, name: e.target.value })}
+            />
+          </div>
+          <div className="w-40 space-y-2">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">{t('common.capacity')}</label>
+            <input
+              type="number"
+              className="w-full px-6 py-5 bg-white/60 border border-white/80 rounded-2xl text-sm font-black tracking-tight focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all duration-500 shadow-inner outline-none"
+              value={formData.capacity}
+              onChange={e => setFormData({ ...formData, capacity: Number(e.target.value) })}
+            />
+          </div>
+          <div className="flex-1 min-w-[250px] space-y-2">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">{t('common.area')}</label>
+            <select className="w-full px-6 py-5 bg-white border border-white/80 rounded-2xl text-xs font-black uppercase tracking-widest focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all shadow-inner" value={formData.section_id || ''} onChange={e => setFormData({ ...formData, section_id: Number(e.target.value) })}>
               {!formData.section_id && <option value="">Select Area...</option>}
               {sec?.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
             </select>
@@ -319,26 +408,37 @@ const TablesModule = ({ openConfirm, showError }: { openConfirm: (t: string, d: 
           <button
             onClick={handleAddTable}
             disabled={!formData.section_id || createMutation.isPending}
-            className={`btn-primary h-[42px] px-8 ${(!formData.section_id || createMutation.isPending) ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className="h-[62px] px-12 bg-slate-900 text-white rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] shadow-2xl hover:bg-emerald-600 hover:scale-105 active:scale-95 transition-all duration-500 disabled:opacity-30"
           >
-            {createMutation.isPending ? '...' : t('common.add_new')}
+            {createMutation.isPending ? <RefreshCw className="size-5 animate-spin" /> : t('common.add_new')}
           </button>
         </div>
         {sec.length === 0 && (
-          <p className="text-xs text-rose-500 font-medium mt-2">
+          <p className="text-[10px] text-rose-500 font-bold mt-4 uppercase tracking-widest text-center animate-pulse">
             * No Table Areas found. Please add an Area Section first.
           </p>
         )}
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
         {tables.map(t_item => (
-          <div key={t_item.id} className="card p-5 flex justify-between items-center group hover:border-indigo-300">
-            <div>
-              <div className="font-bold text-slate-900 text-lg">{t_item.name}</div>
-              <div className="text-xs font-medium text-slate-500 uppercase mt-1">{t('common.capacity')}: {t_item.capacity} <span className="text-slate-300">|</span> {t_item.section?.name}</div>
+          <div key={t_item.id} className="relative glass rounded-[2.5rem] p-8 border-white/80 hover:bg-white/80 transition-all duration-500 shadow-xl shadow-indigo-500/5 group overflow-hidden">
+            <div className="flex items-center justify-between relative z-10">
+              <div className="size-16 rounded-[1.25rem] bg-slate-900 text-white flex items-center justify-center font-black text-xl shadow-2xl group-hover:scale-110 transition-transform duration-500">
+                {t_item.name}
+              </div>
+              <button onClick={() => openConfirm(t('common.delete'), `${t('common.delete_confirm')} (${t_item.name})`, () => deleteTable(t_item.id).then(() => queryClient.invalidateQueries({ queryKey: ['tables'] })).catch((e: any) => showError(e?.response?.data?.message || 'Delete failed')))} className="size-10 rounded-xl bg-white text-slate-300 hover:text-rose-600 hover:bg-rose-50 transition-all duration-300 flex items-center justify-center border border-white group-hover:shadow-lg">
+                <Trash2 size={18} />
+              </button>
             </div>
-            <button onClick={() => openConfirm(t('common.delete'), `${t('common.delete_confirm')} (${t_item.name})`, () => deleteTable(t_item.id).then(() => queryClient.invalidateQueries({ queryKey: ['tables'] })).catch((e: any) => showError(e?.response?.data?.message || 'Delete failed')))} className="text-slate-300 hover:text-rose-500 transition-colors p-2"><Trash2 size={18} /></button>
+            <div className="mt-8 space-y-1">
+              <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('common.area')}</div>
+              <div className="text-sm font-black text-slate-800 uppercase tracking-tight truncate">{t_item.section?.name}</div>
+            </div>
+            <div className="mt-6 flex justify-between items-center text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 bg-white/40 p-3 rounded-xl border border-white/60 shadow-inner">
+              <span>Cap: {t_item.capacity}</span>
+              <div className="size-2 rounded-full bg-emerald-500 shadow-lg shadow-emerald-500/50" />
+            </div>
           </div>
         ))}
       </div>
@@ -353,7 +453,7 @@ const SectionsModule = ({ openPrompt, openConfirm, showError }: { openPrompt: (t
   const { data: pSec = [] } = useQuery({ queryKey: ['prep-sections'], queryFn: fetchPrepSections })
 
   return (
-    <div className="grid gap-8 lg:grid-cols-2">
+    <div className="grid gap-12 grid-cols-1 xl:grid-cols-2">
       <SectionCard
         title={t('admin.table_areas')}
         items={tSec}
@@ -375,20 +475,33 @@ const SectionsModule = ({ openPrompt, openConfirm, showError }: { openPrompt: (t
 }
 
 const SectionCard = ({ title, items, onAdd, onDelete }: { title: string, items: any[], onAdd: () => void, onDelete: (id: number) => void }) => (
-  <div className="card flex flex-col min-h-[400px]">
-    <div className="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 rounded-t-xl">
-      <h3 className="font-bold text-slate-800 uppercase tracking-wide flex items-center gap-2"><Layers size={18} className="text-slate-400" /> {title}</h3>
-      <button onClick={onAdd} className="text-indigo-600 hover:text-indigo-700 text-xs font-bold uppercase tracking-wider flex items-center gap-1 bg-white border border-indigo-100 px-3 py-1.5 rounded-lg shadow-sm">
+  <div className="glass rounded-[3rem] border-white/60 shadow-2xl shadow-indigo-500/5 bg-white/40 overflow-hidden min-h-[500px] flex flex-col">
+    <div className="p-10 border-b border-white/60 flex justify-between items-center bg-white/40">
+      <div className="space-y-1">
+        <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest leading-none flex items-center gap-3">
+          <Layers size={20} className="text-slate-400" /> {title}
+        </h3>
+        <div className="h-1 w-12 bg-gradient-to-r from-indigo-500 to-transparent rounded-full" />
+      </div>
+      <button onClick={onAdd} className="px-6 py-3 bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl hover:bg-indigo-600 hover:scale-105 transition-all duration-500">
         <Plus size={14} /> Add New
       </button>
     </div>
-    <div className="divide-y divide-slate-50 p-2">
+    <div className="p-6 space-y-4">
       {items.map(s => (
-        <div key={s.id} className="p-3 flex justify-between items-center text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg transition-colors group">
-          <span className="pl-2">{s.name}</span>
-          <button onClick={() => onDelete(s.id)} className="text-slate-300 hover:text-rose-500 p-1.5 opacity-0 group-hover:opacity-100 transition-all"><Trash2 size={16} /></button>
+        <div key={s.id} className="flex justify-between items-center p-6 bg-white/60 rounded-3xl border border-white/80 transition-all duration-500 hover:bg-white hover:shadow-lg group">
+          <span className="text-sm font-black text-slate-800 uppercase tracking-tight">{s.name}</span>
+          <button onClick={() => onDelete(s.id)} className="size-10 rounded-xl bg-white text-slate-300 hover:text-rose-600 hover:bg-rose-50 transition-all duration-300 flex items-center justify-center border border-white opacity-0 group-hover:opacity-100 group-hover:shadow-md">
+            <Trash2 size={16} />
+          </button>
         </div>
       ))}
+      {items.length === 0 && (
+        <div className="flex-1 flex flex-col items-center justify-center py-20 opacity-20 text-slate-400">
+          <ClipboardList size={48} className="mb-4" />
+          <p className="text-[10px] font-black uppercase tracking-[0.3em]">No sections yet</p>
+        </div>
+      )}
     </div>
   </div>
 )
@@ -411,39 +524,47 @@ const UsersModule = ({ openConfirm }: { openConfirm: (t: string, d: string, cb: 
   })
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[350px,1fr]">
-      <div className="card p-6 h-fit sticky top-6">
-        <h3 className="text-sm font-bold text-slate-900 uppercase mb-5 tracking-wide flex items-center gap-2">
-          <Users size={16} /> {t('admin.create_user_btn')}
-        </h3>
-        <form className="space-y-4" onSubmit={e => { e.preventDefault(); createMutation.mutate(uForm) }}>
-          <div className="space-y-1">
-            <label className="text-xs font-semibold text-slate-500 uppercase">Full Name</label>
-            <input className="input-field" placeholder="e.g. John Doe" value={uForm.name} onChange={e => setUForm({ ...uForm, name: e.target.value })} required />
+    <div className="grid gap-12 lg:grid-cols-[400px,1fr] items-start">
+      <div className="glass p-10 rounded-[3.5rem] border-white/60 shadow-2xl shadow-indigo-500/5 bg-white/40">
+        <div className="flex items-center gap-4 mb-10">
+          <div className="size-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-500/20">
+            <Users size={24} />
           </div>
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-slate-500 uppercase">Email Address</label>
-            <input type="email" className="input-field" placeholder="john@example.com" value={uForm.email} onChange={e => setUForm({ ...uForm, email: e.target.value })} required />
+            <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest leading-none">
+              {t('admin.create_user_btn')}
+            </h3>
+            <div className="h-1 w-12 bg-gradient-to-r from-indigo-500 to-transparent rounded-full" />
           </div>
-          <div className="space-y-1">
-            <label className="text-xs font-semibold text-slate-500 uppercase">Password</label>
-            <input type="password" className="input-field" placeholder="••••••••" value={uForm.password} onChange={e => setUForm({ ...uForm, password: e.target.value })} required />
+        </div>
+
+        <form className="space-y-8" onSubmit={e => { e.preventDefault(); createMutation.mutate(uForm) }}>
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Full Name</label>
+            <input className="w-full px-6 py-5 bg-white/60 border border-white/80 rounded-2xl text-sm font-black uppercase tracking-tight placeholder:text-slate-300 focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all duration-500 shadow-inner outline-none" placeholder="e.g. John Doe" value={uForm.name} onChange={e => setUForm({ ...uForm, name: e.target.value })} required />
+          </div>
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Email Address</label>
+            <input type="email" className="w-full px-6 py-5 bg-white/60 border border-white/80 rounded-2xl text-sm font-black placeholder:text-slate-300 focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all duration-500 shadow-inner outline-none" placeholder="john@example.com" value={uForm.email} onChange={e => setUForm({ ...uForm, email: e.target.value })} required />
+          </div>
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Password</label>
+            <input type="password" className="w-full px-6 py-5 bg-white/60 border border-white/80 rounded-2xl text-sm font-black placeholder:text-slate-300 focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all duration-500 shadow-inner outline-none" placeholder="••••••••" value={uForm.password} onChange={e => setUForm({ ...uForm, password: e.target.value })} required />
           </div>
 
-          <div className="space-y-1">
-            <label className="text-xs font-semibold text-slate-500 uppercase">Operational Area (Optional)</label>
-            <select className="input-field bg-white" value={uForm.prep_section_id || ''} onChange={e => setUForm({ ...uForm, prep_section_id: e.target.value ? Number(e.target.value) : undefined })}>
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Operational Area</label>
+            <select className="w-full px-6 py-5 bg-white border border-white/80 rounded-2xl text-xs font-black uppercase tracking-widest focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all shadow-inner" value={uForm.prep_section_id || ''} onChange={e => setUForm({ ...uForm, prep_section_id: e.target.value ? Number(e.target.value) : undefined })}>
               <option value="">Full Access / None</option>
               {prepSections.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
             </select>
-            <p className="text-[10px] text-slate-400 italic mt-0.5">* Assign for Kitchen, Desserts, or Drinks staff.</p>
           </div>
 
-          <div className="space-y-2 pt-2">
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('admin.assign_roles')}</label>
-            <div className="flex flex-wrap gap-2">
+          <div className="space-y-4 pt-4 border-t border-white/60">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] ml-1">{t('admin.assign_roles')}</label>
+            <div className="flex flex-wrap gap-3">
               {roles.map(r => (
-                <label key={r.id} className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-bold cursor-pointer transition-all ${uForm.role_ids.includes(r.id) ? 'bg-slate-800 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}`}>
+                <label key={r.id} className={`flex items-center gap-3 px-5 py-3 rounded-xl border text-[10px] font-black uppercase tracking-widest cursor-pointer transition-all duration-500 ${uForm.role_ids.includes(r.id) ? 'bg-slate-900 border-slate-900 text-white shadow-xl' : 'bg-white border-white/80 text-slate-500 hover:bg-white hover:border-indigo-200 shadow-sm'}`}>
                   <input type="checkbox" className="hidden" checked={uForm.role_ids.includes(r.id)} onChange={e => {
                     const cid = r.id;
                     setUForm({ ...uForm, role_ids: e.target.checked ? [...uForm.role_ids, cid] : uForm.role_ids.filter(i => i !== cid) })
@@ -453,25 +574,40 @@ const UsersModule = ({ openConfirm }: { openConfirm: (t: string, d: string, cb: 
               ))}
             </div>
           </div>
-          <button className="btn-primary w-full mt-4">{t('admin.create_user_btn')}</button>
+          <button className="h-[62px] w-full bg-slate-900 text-white rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] shadow-2xl hover:bg-indigo-600 hover:scale-105 active:scale-95 transition-all duration-500 mt-6">
+            {t('admin.create_user_btn')}
+          </button>
         </form>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
         {users.map(u => (
-          <div key={u.id} className="card p-5 group hover:border-indigo-300">
-            <div className="flex justify-between items-start mb-3">
-              <div className="h-10 w-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-lg">
+          <div key={u.id} className="group glass rounded-[2.5rem] p-8 border-white/80 hover:bg-white/80 transition-all duration-700 shadow-xl shadow-indigo-500/5 overflow-hidden flex flex-col items-center text-center">
+            <div className="relative mb-6">
+              <div className="size-24 rounded-[2rem] bg-indigo-600 text-white flex items-center justify-center font-black text-4xl shadow-2xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-700">
                 {u.name.charAt(0).toUpperCase()}
               </div>
-              <button onClick={() => openConfirm(t('common.delete'), `${t('common.delete_confirm')} (${u.name})`, () => deleteUser(u.id).then(() => queryClient.invalidateQueries({ queryKey: ['users'] })))} className="text-slate-300 hover:text-rose-500 transition-colors p-1"><Trash2 size={16} /></button>
+              <div className="absolute -bottom-2 -right-2 size-8 bg-emerald-500 border-4 border-white rounded-full shadow-lg shadow-emerald-500/30" />
             </div>
 
-            <div className="font-bold text-slate-900 text-lg leading-tight mb-0.5">{u.name}</div>
-            <div className="text-xs font-medium text-slate-400 uppercase tracking-wide mb-4">{u.email}</div>
+            <div className="space-y-1 mb-8">
+              <div className="font-black text-slate-900 text-2xl tracking-tighter uppercase truncate w-full px-4">{u.name}</div>
+              <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{u.email}</div>
+            </div>
 
-            <div className="flex flex-wrap gap-1.5">
-              {u.roles?.map(r => <span key={r.id} className="px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 font-bold text-[10px] uppercase tracking-wider border border-slate-200">{r.name}</span>)}
+            <div className="flex flex-wrap gap-2 justify-center mb-8">
+              {u.roles?.map(r => <span key={r.id} className="px-4 py-1.5 rounded-xl bg-slate-900 text-white font-black text-[9px] uppercase tracking-widest shadow-xl">{r.name}</span>)}
+            </div>
+
+            <button
+              onClick={() => openConfirm(t('common.delete'), `${t('common.delete_confirm')} (${u.name})`, () => deleteUser(u.id).then(() => queryClient.invalidateQueries({ queryKey: ['users'] })))}
+              className="mt-auto w-full py-4 rounded-2xl bg-white text-slate-300 hover:text-rose-600 hover:bg-rose-50 transition-all duration-500 border border-white font-black text-[10px] uppercase tracking-widest group-hover:shadow-lg"
+            >
+              Terminate Access
+            </button>
+            {/* Decorative element */}
+            <div className="absolute top-0 left-0 p-6 opacity-0 group-hover:opacity-10 transition-opacity">
+              <Users size={100} className="-rotate-12" />
             </div>
           </div>
         ))}
@@ -486,37 +622,48 @@ const AuditsModule = () => {
   const { data: auditsResp, isLoading, refetch } = useQuery({ queryKey: ['audits', page], queryFn: () => fetchAudits(page) })
 
   return (
-    <div className="card overflow-hidden">
-      <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-        <h3 className="font-bold text-slate-800 uppercase tracking-wide flex items-center gap-2"><ClipboardList size={18} /> {t('common.audit_trail')}</h3>
-        <button onClick={() => refetch()} className="btn-secondary h-9 text-xs">
-          <RefreshCw size={14} /> {t('common.refresh')}
+    <div className="glass rounded-[3rem] overflow-hidden border-white/60 shadow-2xl shadow-indigo-500/5 bg-white/40">
+      <div className="p-10 border-b border-white/60 flex justify-between items-center bg-white/40">
+        <div className="space-y-1">
+          <h3 className="text-sm font-black text-slate-900 uppercase tracking-[0.4em] leading-none flex items-center gap-4">
+            <ClipboardList size={24} className="text-indigo-600" /> {t('common.audit_trail')}
+          </h3>
+          <div className="h-1 w-24 bg-gradient-to-r from-indigo-500 to-transparent rounded-full" />
+        </div>
+        <button onClick={() => refetch()} className="glass flex items-center gap-3 px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-600 hover:text-indigo-600 hover:bg-white transition-all duration-500 shadow-xl shadow-indigo-500/5">
+          <RefreshCw size={16} className={isLoading ? 'animate-spin' : ''} /> {t('common.refresh')}
         </button>
       </div>
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto custom-scrollbar">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="bg-slate-50 border-b border-slate-200">
-              <th className="px-6 py-4 text-xs font-bold uppercase text-slate-500 whitespace-nowrap">{t('common.time')}</th>
-              <th className="px-6 py-4 text-xs font-bold uppercase text-slate-500 whitespace-nowrap">{t('common.action')}</th>
-              <th className="px-6 py-4 text-xs font-bold uppercase text-slate-500 whitespace-nowrap">{t('common.order')} / {t('common.table_name')}</th>
-              <th className="px-6 py-4 text-xs font-bold uppercase text-slate-500 w-full">{t('common.details')}</th>
+            <tr className="bg-slate-900 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
+              <th className="px-10 py-6 whitespace-nowrap">{t('common.time')}</th>
+              <th className="px-10 py-6 whitespace-nowrap">{t('common.action')}</th>
+              <th className="px-10 py-6 whitespace-nowrap">{t('common.order')} / {t('common.table_name')}</th>
+              <th className="px-10 py-6 w-full">{t('common.details')}</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
-            {isLoading ? <tr><td colSpan={4} className="p-10 text-center text-slate-400">{t('common.loading')}</td></tr> : auditsResp?.data.map(log => (
-              <tr key={`${log.type}-${log.id}`} className="text-sm hover:bg-slate-50/80 transition-colors">
-                <td className="px-6 py-4 text-slate-500 tabular-nums font-medium whitespace-nowrap">{new Date(log.occurred_at).toLocaleString()}</td>
-                <td className="px-6 py-4">
-                  <div className="font-bold text-slate-900">{log.user_name}</div>
-                  <div className="text-[10px] uppercase font-bold text-indigo-600 px-2 py-0.5 bg-indigo-50 border border-indigo-100 rounded mt-1 w-fit">{log.action.replace(/_/g, ' ')}</div>
+          <tbody className="divide-y divide-white/40 text-sm font-black uppercase tracking-tight">
+            {isLoading ? (
+              Array.from({ length: 8 }).map((_, i) => (
+                <tr key={i} className="animate-pulse">
+                  <td colSpan={4} className="px-10 py-6"><div className="h-6 bg-white/20 rounded-xl w-full" /></td>
+                </tr>
+              ))
+            ) : auditsResp?.data.map(log => (
+              <tr key={`${log.type}-${log.id}`} className="hover:bg-white/60 transition-colors duration-500 group">
+                <td className="px-10 py-8 text-slate-400 tabular-nums whitespace-nowrap font-black">{new Date(log.occurred_at).toLocaleString()}</td>
+                <td className="px-10 py-8">
+                  <div className="text-slate-900 mb-1.5">{log.user_name}</div>
+                  <div className="text-[9px] font-black text-indigo-600 px-3 py-1 bg-indigo-50 border border-indigo-100 rounded-lg w-fit group-hover:bg-indigo-600 group-hover:text-white transition-all duration-500 tracking-[0.2em]">{log.action.replace(/_/g, ' ')}</div>
                 </td>
-                <td className="px-6 py-4">
-                  <span className={`text-xs font-bold px-2.5 py-1 rounded-md border ${log.type === 'order' ? 'bg-amber-50 text-amber-700 border-amber-100' : 'bg-blue-50 text-blue-700 border-blue-100'}`}>
+                <td className="px-10 py-8">
+                  <span className={`text-[9px] font-black px-4 py-1.5 rounded-xl border-2 tracking-[0.3em] ${log.type === 'order' ? 'bg-amber-100 text-amber-600 border-amber-200' : 'bg-blue-100 text-blue-600 border-blue-200'}`}>
                     {log.type === 'order' ? t('common.order') : t('common.system')}
                   </span>
                 </td>
-                <td className="px-6 py-4 font-medium text-slate-600">
+                <td className="px-10 py-8 text-slate-500 leading-relaxed font-black">
                   {log.description}
                 </td>
               </tr>
@@ -525,11 +672,15 @@ const AuditsModule = () => {
         </table>
       </div>
       {auditsResp && (
-        <div className="bg-white border-t border-slate-100 p-4 flex justify-between items-center text-xs font-bold text-slate-500">
-          <div>{t('common.page')} {auditsResp.current_page} {t('common.of')} {auditsResp.last_page}</div>
-          <div className="flex gap-2">
-            <button disabled={page === 1} onClick={() => setPage(p => p - 1)} className="px-4 py-2 border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:hover:bg-white">{t('common.prev')}</button>
-            <button disabled={page === auditsResp.last_page} onClick={() => setPage(p => p + 1)} className="px-4 py-2 border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:hover:bg-white">{t('common.next')}</button>
+        <div className="glass mt-0 bg-white/60 border-t border-white/80 p-8 flex justify-between items-center text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
+          <div className="flex items-center gap-4">
+            <span className="text-indigo-600">{t('common.page')} {auditsResp?.current_page}</span>
+            <span className="opacity-30">/</span>
+            <span>{auditsResp?.last_page}</span>
+          </div>
+          <div className="flex gap-4">
+            <button disabled={page === 1} onClick={() => setPage(p => p - 1)} className="px-8 py-3 rounded-xl glass hover:bg-white text-slate-600 disabled:opacity-20 border-white/60 transition-all duration-500 hover:scale-105 active:scale-95">{t('common.prev')}</button>
+            <button disabled={page === (auditsResp?.last_page || 1)} onClick={() => setPage(p => p + 1)} className="px-8 py-3 rounded-xl glass hover:bg-white text-slate-600 disabled:opacity-20 border-white/60 transition-all duration-500 hover:scale-105 active:scale-95">{t('common.next')}</button>
           </div>
         </div>
       )}
