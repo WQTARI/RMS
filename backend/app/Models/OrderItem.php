@@ -56,10 +56,11 @@ class OrderItem extends Model
         }
 
         $transitions = [
-            OrderItemStatus::Pending->value => [OrderItemStatus::InProgress],
-            OrderItemStatus::InProgress->value => [OrderItemStatus::Ready],
-            OrderItemStatus::Ready->value => [OrderItemStatus::Served],
+            OrderItemStatus::Pending->value => [OrderItemStatus::InProgress, OrderItemStatus::Cancelled],
+            OrderItemStatus::InProgress->value => [OrderItemStatus::Ready, OrderItemStatus::Cancelled],
+            OrderItemStatus::Ready->value => [OrderItemStatus::Served, OrderItemStatus::Cancelled],
             OrderItemStatus::Served->value => [],
+            OrderItemStatus::Cancelled->value => [],
         ];
 
         return in_array($next, $transitions[$this->status->value] ?? [], true);

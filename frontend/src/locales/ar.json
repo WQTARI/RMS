@@ -150,7 +150,8 @@
         "cancel_order_confirm": "هل أنت متأكد من إلغاء هذا الطلب؟ سيتم حذفه من المطبخ.",
         "payment_methods": "طرق الدفع",
         "applied_total": "المجموع المدفوع",
-        "difference": "المتبقي"
+        "difference": "المتبقي",
+        "print_receipt": "طباعة الفاتورة"
     },
     "status": {
         "available": "متاحة",
@@ -197,6 +198,7 @@
     "admin": {
         "title": "وحدة التحكم المركزية",
         "subtitle": "إدارة النظام والتحكم الشامل",
+        "restaurant": "إعدادات المطعم",
         "menu_items": "قائمة الطعام",
         "tables": "الطاولات",
         "sections": "الأقسام",

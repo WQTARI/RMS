@@ -59,13 +59,13 @@ class OrderRegressionTest extends TestCase
         ]);
 
         $item = OrderItem::where('order_id', $order->id)->firstOrFail();
-        app(OrderService::class)->updateItemStatus($item, OrderItemStatus::Preparing);
+        app(OrderService::class)->updateItemStatus($item, OrderItemStatus::InProgress);
         $item = OrderItem::where('order_id', $order->id)->firstOrFail();
         app(OrderService::class)->updateItemStatus($item, OrderItemStatus::Ready);
 
         $this->assertEquals(OrderStatus::Ready, $order->refresh()->status);
 
-        app(OrderService::class)->addItems($order, [
+        app(OrderService::class)->updateOrderItems($order, [
             ['menu_item_id' => $secondItem->id, 'quantity' => 1],
         ], 123);
 
@@ -78,7 +78,7 @@ class OrderRegressionTest extends TestCase
                 && ($context['order_id'] ?? null) === $order->id
                 && ($context['previous_status'] ?? null) === OrderStatus::Ready->value
                 && ($context['new_status'] ?? null) === OrderStatus::InProgress->value
-                && ($context['reason'] ?? null) === 'Item added after order was READY';
+                && ($context['reason'] ?? null) === 'Order modified after it was READY';
         })->once();
     }
 }

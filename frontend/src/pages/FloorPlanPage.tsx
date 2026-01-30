@@ -65,7 +65,7 @@ export const FloorPlanPage = () => {
   return (
     <div className="pb-16 space-y-12">
       {/* 1. Ultra-Premium Header: Glassmorphism & Fluid Layout */}
-      <div className="flex flex-col lg:flex-row items-center justify-between gap-10 bg-white/40 backdrop-blur-2xl p-10 lg:p-14 rounded-[3rem] mb-16 animate-in fade-in slide-in-from-top duration-1000 border border-white/50 shadow-2xl shadow-indigo-500/5 relative overflow-hidden group">
+      <div className="flex flex-col lg:flex-row items-center justify-between gap-10 bg-slate-50/40 backdrop-blur-2xl p-10 lg:p-14 rounded-[3rem] mb-16 animate-in fade-in slide-in-from-top duration-1000 border border-white/50 shadow-2xl shadow-indigo-500/5 relative overflow-hidden group">
         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2 group-hover:bg-primary/10 transition-colors duration-700" />
 
         <PageHeader

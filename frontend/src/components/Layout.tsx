@@ -19,79 +19,81 @@ const NavContent = ({
     hasPermission,
     location,
     t
-}: any) => (
-    <div className="flex flex-col h-full bg-white border-r border-slate-200">
-        <div className="h-16 flex items-center px-6 border-b border-slate-100 shrink-0">
-            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white mr-4 rtl:mr-0 rtl:ml-4 shadow-lg shadow-primary/30 transform group-hover:rotate-12 transition-transform">
-                <LayoutDashboard size={22} strokeWidth={2.5} />
+}: any) => {
+    return (
+        <div className="flex flex-col h-full bg-white border-r border-slate-200">
+            <div className="h-16 flex items-center px-6 border-b border-slate-100 shrink-0">
+                <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white mr-4 rtl:mr-0 rtl:ml-4 shadow-lg shadow-primary/30 transform group-hover:rotate-12 transition-transform">
+                    <LayoutDashboard size={22} strokeWidth={2.5} />
+                </div>
+                <h1 className="text-2xl font-black text-slate-900 tracking-tighter">RMS</h1>
             </div>
-            <h1 className="text-2xl font-black text-slate-900 tracking-tighter">RMS</h1>
-        </div>
 
-        <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-6">
-            {navItems.map((group: any) => {
-                const filtered = group.items.filter((item: any) => hasPermission(item.permission))
-                if (filtered.length === 0) return null
+            <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-6 text-slate-900">
+                {navItems.map((group: any) => {
+                    const filtered = group.items.filter((item: any) => hasPermission(item.permission))
+                    if (filtered.length === 0) return null
 
-                return (
-                    <div key={group.group}>
-                        <div className="px-3 mb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                            {group.group}
+                    return (
+                        <div key={group.group}>
+                            <div className="px-3 mb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                                {group.group}
+                            </div>
+                            <div className="space-y-1.5 px-1">
+                                {filtered.map((item: any) => {
+                                    const isActive = location.pathname === item.path
+                                    return (
+                                        <Link
+                                            key={item.path}
+                                            to={item.path}
+                                            className={`group flex items-center gap-4 px-4 py-3.5 rounded-2xl text-[13px] font-black uppercase tracking-widest transition-all duration-500 ${isActive
+                                                ? 'bg-primary text-white shadow-lg shadow-primary/20 translate-x-1 rtl:-translate-x-1'
+                                                : 'text-slate-500 hover:bg-white/60 hover:text-primary hover:translate-x-1 rtl:hover:-translate-x-1'
+                                                }`}
+                                        >
+                                            <span className={`transition-all duration-500 transform group-hover:scale-110 group-hover:rotate-6 ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-primary'}`}>
+                                                {item.icon}
+                                            </span>
+                                            {item.label}
+                                        </Link>
+                                    )
+                                })}
+                            </div>
                         </div>
-                        <div className="space-y-1.5 px-1">
-                            {filtered.map((item: any) => {
-                                const isActive = location.pathname === item.path
-                                return (
-                                    <Link
-                                        key={item.path}
-                                        to={item.path}
-                                        className={`group flex items-center gap-4 px-4 py-3.5 rounded-2xl text-[13px] font-black uppercase tracking-widest transition-all duration-500 ${isActive
-                                            ? 'bg-primary text-white shadow-lg shadow-primary/20 translate-x-1 rtl:-translate-x-1'
-                                            : 'text-slate-500 hover:bg-white/60 hover:text-primary hover:translate-x-1 rtl:hover:-translate-x-1'
-                                            }`}
-                                    >
-                                        <span className={`transition-all duration-500 transform group-hover:scale-110 group-hover:rotate-6 ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-primary'}`}>
-                                            {item.icon}
-                                        </span>
-                                        {item.label}
-                                    </Link>
-                                )
-                            })}
-                        </div>
+                    )
+                })}
+            </nav>
+
+            <div className="p-4 border-t border-slate-100 space-y-1">
+                <div className="px-3 py-2 flex items-center gap-3 mb-2">
+                    <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-sm font-bold">
+                        {user?.name?.charAt(0).toUpperCase()}
                     </div>
-                )
-            })}
-        </nav>
+                    <div className="overflow-hidden">
+                        <p className="text-sm font-medium text-slate-900 truncate">{user?.name}</p>
+                        <p className="text-xs text-slate-500 truncate">{user?.roles?.[0]?.name || 'Staff'}</p>
+                    </div>
+                </div>
 
-        <div className="p-4 border-t border-slate-100 space-y-1">
-            <div className="px-3 py-2 flex items-center gap-3 mb-2">
-                <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-sm font-bold">
-                    {user?.name?.charAt(0).toUpperCase()}
-                </div>
-                <div className="overflow-hidden">
-                    <p className="text-sm font-medium text-slate-900 truncate">{user?.name}</p>
-                    <p className="text-xs text-slate-500 truncate">{user?.roles?.[0]?.name || 'Staff'}</p>
-                </div>
+                <button
+                    onClick={toggleLanguage}
+                    className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-600 hover:bg-slate-50 font-medium"
+                >
+                    <Languages size={18} />
+                    {i18n.language.startsWith('ar') ? 'English' : 'العربية'}
+                </button>
+
+                <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-rose-600 hover:bg-rose-50 font-medium transition-colors"
+                >
+                    <LogOut size={18} />
+                    {t('nav.sign_out')}
+                </button>
             </div>
-
-            <button
-                onClick={toggleLanguage}
-                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-600 hover:bg-slate-50 font-medium"
-            >
-                <Languages size={18} />
-                {i18n.language.startsWith('ar') ? 'English' : 'العربية'}
-            </button>
-
-            <button
-                onClick={handleLogout}
-                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-rose-600 hover:bg-rose-50 font-medium transition-colors"
-            >
-                <LogOut size={18} />
-                {t('nav.sign_out')}
-            </button>
         </div>
-    </div>
-)
+    )
+}
 
 export const Layout = () => {
     const { t, i18n } = useTranslation()
@@ -213,4 +215,3 @@ export const Layout = () => {
         </div>
     )
 }
-

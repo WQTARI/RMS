@@ -148,7 +148,8 @@
         "confirm_order": "Confirm Order",
         "payment_methods": "Payment Methods",
         "applied_total": "Applied Total",
-        "difference": "Difference"
+        "difference": "Difference",
+        "print_receipt": "Print Receipt"
     },
     "status": {
         "available": "Available",
@@ -195,6 +196,7 @@
     "admin": {
         "title": "Central Command",
         "subtitle": "System governance and global control.",
+        "restaurant": "Restaurant Settings",
         "menu_items": "Menu Items",
         "tables": "Tables",
         "sections": "Area Sections",

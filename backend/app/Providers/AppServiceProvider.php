@@ -26,7 +26,7 @@ class AppServiceProvider extends ServiceProvider
         \App\Models\Order::observe(\App\Observers\OrderObserver::class);
         \App\Models\Invoice::observe(\App\Observers\InvoiceObserver::class);
         \App\Models\Reservation::observe(\App\Observers\ReservationObserver::class);
-        
+
         // System Audit Observers
         \App\Models\User::observe(\App\Observers\UserObserver::class);
         \App\Models\MenuItem::observe(\App\Observers\MenuItemObserver::class);
@@ -38,17 +38,15 @@ class AppServiceProvider extends ServiceProvider
             $builder->with(['items.menuItem', 'reservation']);
         });
 
-        // Register all permissions as Gates
-        $permissions = [
-            'view_only',
-            'create_order',
-            'modify_order_content',
-            'update_item_status',
-            'manage_reservations',
-            'close_invoice',
-            'view_reports',
-            'manage_settings',
-        ];
+        // Register all permissions as Gates dynamically from the database
+        $permissions = \Illuminate\Support\Facades\Cache::remember('system_permissions', 86400, function () {
+            try {
+                return \App\Models\Permission::pluck('name')->toArray();
+            } catch (\Exception $e) {
+                // Fallback for migrations/setup
+                return [];
+            }
+        });
 
         foreach ($permissions as $permission) {
             \Illuminate\Support\Facades\Gate::define($permission, function ($user) use ($permission) {

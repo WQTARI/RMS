@@ -17,39 +17,51 @@ class OrderController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         $this->authorize('viewAny', Order::class);
+
+        $request->validate([
+            'start_date' => ['nullable', 'date'],
+            'end_date' => ['nullable', 'date'],
+            'table_id' => ['nullable', 'exists:restaurant_tables,id'],
+            'invoice_id' => ['nullable', 'exists:invoices,id'],
+            'status' => ['nullable', 'string'],
+            'search' => ['nullable', 'string', 'max:100'],
+            'paginate' => ['nullable'],
+            'kitchen_visible' => ['nullable'],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+        ]);
 
         $query = Order::with(['items.menuItem', 'table.section', 'reservation'])
             ->orderByDesc('created_at');
 
-        if (request()->filled('search')) {
-            $search = request('search');
+        if ($request->filled('search')) {
+            $search = $request->input('search');
             $query->where(function ($q) use ($search) {
                 $q->where('id', 'like', "%$search%")
                     ->orWhere('customer_name', 'like', "%$search%");
             });
         }
 
-        if (request()->filled('start_date')) {
-            $query->whereDate('created_at', '>=', request('start_date'));
+        if ($request->filled('start_date')) {
+            $query->whereDate('created_at', '>=', $request->input('start_date'));
         }
 
-        if (request()->filled('end_date')) {
-            $query->whereDate('created_at', '<=', request('end_date'));
+        if ($request->filled('end_date')) {
+            $query->whereDate('created_at', '<=', $request->input('end_date'));
         }
 
-        if (request()->filled('table_id')) {
-            $query->where('table_id', request('table_id'));
+        if ($request->filled('table_id')) {
+            $query->where('table_id', $request->input('table_id'));
         }
 
-        if (request()->filled('invoice_id')) {
-            $query->where('invoice_id', request('invoice_id'));
+        if ($request->filled('invoice_id')) {
+            $query->where('invoice_id', $request->input('invoice_id'));
         }
 
-        if (request()->filled('status')) {
-            $status = strtoupper((string) request('status'));
+        if ($request->filled('status')) {
+            $status = strtoupper((string) $request->input('status'));
             if ($status === 'ACTIVE') {
                 $query->whereIn('status', [\App\Enums\OrderStatus::Open, \App\Enums\OrderStatus::InProgress, \App\Enums\OrderStatus::Ready]);
             } else {
@@ -138,12 +150,13 @@ class OrderController extends Controller
 
         $data = $request->validate([
             'items' => ['required', 'array', 'min:1'],
-            'items.*.menu_item_id' => ['required', 'exists:menu_items,id'],
-            'items.*.quantity' => ['required', 'integer', 'min:1'],
+            'items.*.id' => ['nullable', 'exists:order_items,id'],
+            'items.*.menu_item_id' => ['required_without:items.*.id', 'exists:menu_items,id'],
+            'items.*.quantity' => ['required', 'integer', 'min:0'],
             'items.*.notes' => ['nullable', 'string'],
         ]);
 
-        app(OrderService::class)->addItems($order, $data['items'], $request->user()?->id);
+        app(OrderService::class)->updateOrderItems($order, $data['items'], $request->user()?->id);
 
         return response()->json($order->load(['items.menuItem', 'table.section']));
     }

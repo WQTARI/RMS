@@ -44,7 +44,7 @@ class OrderService
                 'started_at' => now(),
             ]);
 
-            $this->addItems($order, $payload['items'] ?? [], $payload['created_by'] ?? null);
+            $this->updateOrderItems($order, $payload['items'] ?? [], $payload['created_by'] ?? null);
 
             if (!empty($payload['reservation_id'])) {
                 $reservation = Reservation::find($payload['reservation_id']);
@@ -87,101 +87,103 @@ class OrderService
         });
     }
 
-    public function addItems(Order $order, array $items, ?int $actorId = null): Order
+    public function updateOrderItems(Order $order, array $items, ?int $actorId = null): Order
     {
-        $order->loadMissing('items.menuItem');
-        $beforeSnapshot = $this->snapshotItems($order->items);
-        $requiresAudit = $order->items->contains(fn(OrderItem $item) => $item->isAtLeastInProgress());
-        $wasReady = $order->status === OrderStatus::Ready;
+        return DB::transaction(function () use ($order, $items, $actorId) {
+            $order->loadMissing('items.menuItem');
+            $beforeSnapshot = $this->snapshotItems($order->items);
+            $wasReady = $order->status === OrderStatus::Ready;
 
-        $menuItems = MenuItem::whereIn('id', collect($items)->pluck('menu_item_id'))->get()->keyBy('id');
+            if ($wasReady) {
+                // Explicitly regress READY orders when modifying items.
+                Order::allowStatusWrite(fn() => $order->update(['status' => OrderStatus::InProgress]));
+                \App\Events\OrderRegressedToInProgress::dispatchSafe($order->fresh('items'));
+                $this->auditOrderMutation(
+                    $order,
+                    'order_regressed_to_in_progress',
+                    $beforeSnapshot,
+                    $beforeSnapshot,
+                    $actorId,
+                    OrderStatus::Ready->value,
+                    OrderStatus::InProgress->value,
+                    'Order modified after it was READY'
+                );
+            }
 
-        if ($wasReady) {
-            // Explicitly regress READY orders when adding items.
-            Order::allowStatusWrite(fn() => $order->update(['status' => OrderStatus::InProgress]));
-            \App\Events\OrderRegressedToInProgress::dispatchSafe($order->fresh('items'));
-            Log::info('order.audit', [
-                'order_id' => $order->id,
-                'user_id' => $actorId,
-                'action' => 'order_regressed_to_in_progress',
-                'previous_status' => OrderStatus::Ready->value,
-                'new_status' => OrderStatus::InProgress->value,
-                'reason' => 'Item added after order was READY',
-                'occurred_at' => now()->toISOString(),
-            ]);
+            $modifiedItemIds = [];
+            foreach ($items as $itemData) {
+                if (isset($itemData['id'])) {
+                    // Update existing item
+                    $orderItem = $order->items->find($itemData['id']);
+                    if ($orderItem) {
+                        if (isset($itemData['quantity']) && $itemData['quantity'] <= 0) {
+                            $orderItem->update(['status' => OrderItemStatus::Cancelled]);
+                        } else {
+                            $orderItem->update(array_filter([
+                                'quantity' => $itemData['quantity'] ?? $orderItem->quantity,
+                                'notes' => $itemData['notes'] ?? $orderItem->notes,
+                            ]));
+                        }
+                        $modifiedItemIds[] = $orderItem->id;
+                    }
+                } else {
+                    // Add new item
+                    $menuItem = MenuItem::findOrFail($itemData['menu_item_id']);
+                    $orderItem = OrderItem::create([
+                        'order_id' => $order->id,
+                        'menu_item_id' => $menuItem->id,
+                        'prep_section_id' => $menuItem->prep_section_id,
+                        'quantity' => $itemData['quantity'],
+                        'price' => $menuItem->price,
+                        'notes' => $itemData['notes'] ?? null,
+                    ]);
+                    $modifiedItemIds[] = $orderItem->id;
+                }
+            }
 
+            $order->load('items');
+            $order->syncStatusFromItems();
+            $this->syncInvoiceTotal($order->invoice_id);
+            app(ReportCacheService::class)->clearSalesAggregates();
+
+            $afterSnapshot = $this->snapshotItems($order->items);
             $this->auditOrderMutation(
                 $order,
-                'order_regressed_to_in_progress',
+                'order_items_updated',
                 $beforeSnapshot,
-                $beforeSnapshot,
-                $actorId,
-                OrderStatus::Ready->value,
-                OrderStatus::InProgress->value,
-                'Item added after order was READY'
-            );
-        }
-
-        $newItems = [];
-        foreach ($items as $item) {
-            $menuItem = $menuItems[$item['menu_item_id']];
-            $orderItem = OrderItem::create([
-                'order_id' => $order->id,
-                'menu_item_id' => $menuItem->id,
-                'prep_section_id' => $menuItem->prep_section_id,
-                'quantity' => $item['quantity'],
-                'price' => $menuItem->price,
-                'notes' => $item['notes'] ?? null,
-            ]);
-
-            $newItems[] = $orderItem;
-            \App\Events\OrderItemUpdated::dispatchSafe($orderItem->load('order'));
-        }
-
-        $order->load('items');
-        $order->syncStatusFromItems();
-
-        // Sync invoice total immediately
-        $this->syncInvoiceTotal($order->invoice_id);
-
-        app(ReportCacheService::class)->clearSalesAggregates();
-
-        if ($requiresAudit) {
-            $this->auditOrderMutation(
-                $order,
-                'add_items_after_in_progress',
-                $beforeSnapshot,
-                $this->snapshotItems($order->items),
+                $afterSnapshot,
                 $actorId,
                 null,
                 null,
-                'Item added after order had items in IN_PROGRESS or later'
+                'Batch update of order items'
             );
-        }
 
-        if ($order->confirmed_at) {
-            $this->dispatchProductionTickets($order, collect($newItems)->pluck('id')->all());
-        }
+            if ($order->confirmed_at) {
+                $this->dispatchProductionTickets($order, $modifiedItemIds);
+            }
 
-        return $order->refresh();
+            return $order->refresh();
+        });
     }
 
     public function updateItemStatus(OrderItem $orderItem, OrderItemStatus $nextStatus): OrderItem
     {
-        $orderItem->loadMissing('prepSection');
+        return DB::transaction(function () use ($orderItem, $nextStatus) {
+            $orderItem->loadMissing('prepSection');
 
-        $orderItem->assertCanTransitionTo($nextStatus);
-        $orderItem->update(['status' => $nextStatus]);
-        if ($order = $orderItem->order) {
-            $order->unsetRelation('items');
-            $order->load('items');
-            $order->syncStatusFromItems();
-            $this->syncInvoiceTotal($order->invoice_id);
-        }
+            $orderItem->assertCanTransitionTo($nextStatus);
+            $orderItem->update(['status' => $nextStatus]);
+            if ($order = $orderItem->order) {
+                $order->unsetRelation('items');
+                $order->load('items');
+                $order->syncStatusFromItems();
+                $this->syncInvoiceTotal($order->invoice_id);
+            }
 
-        app(ReportCacheService::class)->clearSalesAggregates();
+            app(ReportCacheService::class)->clearSalesAggregates();
 
-        return $orderItem->refresh();
+            return $orderItem->refresh();
+        });
     }
 
     protected function snapshotItems($items): array

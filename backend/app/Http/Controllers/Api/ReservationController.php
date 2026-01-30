@@ -22,13 +22,19 @@ class ReservationController extends Controller
     public function index(Request $request)
     {
         $this->authorize('viewAny', Reservation::class);
+
+        $request->validate([
+            'status' => ['nullable', 'string', Rule::enum(ReservationStatus::class)],
+            'date' => ['nullable', 'date'],
+        ]);
+
         $query = Reservation::with('table.section')->orderBy('date_time');
 
-        if ($request->has('status')) {
+        if ($request->filled('status')) {
             $query->where('status', $request->input('status'));
         }
 
-        if ($request->has('date')) {
+        if ($request->filled('date')) {
             $query->whereDate('date_time', $request->input('date'));
         }
 
@@ -152,9 +158,10 @@ class ReservationController extends Controller
 
         $order = app(OrderService::class)->createOrder([
             'table_id' => $reservation->table_id,
+            'customer_name' => $reservation->customer_name, // Explicitly pass for invoice labeling
             'reservation_id' => $reservation->id,
             'notes' => $reservation->notes,
-            'items' => $payload['items'],
+            'items' => $payload['items'] ?? [],
             'created_by' => $request->user()?->id,
         ]);
 

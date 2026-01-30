@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
+import { ErrorBoundary } from './components/ErrorBoundary'
 import { Layout } from './components/Layout'
 import { LoginPage } from './pages/LoginPage'
 import { FloorPlanPage } from './pages/FloorPlanPage'
@@ -61,7 +62,7 @@ const RequirePermission = ({
 
 function App() {
   return (
-    <>
+    <ErrorBoundary>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route
@@ -150,7 +151,7 @@ function App() {
           },
         }}
       />
-    </>
+    </ErrorBoundary>
   )
 }
 

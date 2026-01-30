@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\TableSectionController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\AuditController;
+use App\Http\Controllers\Api\SettingController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:login');
@@ -45,6 +46,11 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
         Route::delete('/tables/{id}', [RestaurantTableController::class, 'destroy']);
         Route::get('/roles', [RoleController::class, 'index']);
         Route::get('/audits', [AuditController::class, 'index']);
+
+        // Restaurant Settings
+        Route::get('/settings', [SettingController::class, 'index']);
+        Route::put('/settings', [SettingController::class, 'update']);
+        Route::post('/settings/upload-logo', [SettingController::class, 'uploadLogo']);
     });
 
     Route::middleware('permission:manage_reservations')->group(function () {

@@ -35,7 +35,7 @@
 
     /* Aura Ultra-Glass Architecture */
     .glass {
-        @apply bg-white/40 backdrop-blur-2xl border border-white/60 shadow-2xl shadow-indigo-500/5;
+        @apply bg-slate-50/40 backdrop-blur-2xl border border-white/60 shadow-2xl shadow-indigo-500/5;
     }
 
     .glass-dark {
@@ -44,16 +44,16 @@
 
     /* Standardized Aura Card */
     .card-aura {
-        @apply glass rounded-[3rem] transition-all duration-500 hover:-translate-y-2 hover:bg-white/60 hover:shadow-indigo-500/10;
+        @apply glass rounded-[3rem] transition-all duration-500 hover:-translate-y-2 hover:bg-slate-50/60 hover:shadow-indigo-500/10;
     }
 
     /* Compact Glass Input - Aura Style */
     .glass-input {
-        @apply w-full bg-white/30 backdrop-blur-md border border-white/60 rounded-2xl px-6 py-5 text-slate-900 placeholder:text-slate-400 outline-none transition-all duration-500;
+        @apply w-full bg-slate-50/30 backdrop-blur-md border border-white/60 rounded-2xl px-6 py-5 text-slate-900 placeholder:text-slate-400 outline-none transition-all duration-500;
     }
 
     .glass-input:focus {
-        @apply border-primary ring-4 ring-primary/10 bg-white/80;
+        @apply border-primary ring-4 ring-primary/10 bg-slate-50/80;
     }
 
     .field-label {

@@ -71,6 +71,11 @@ class RolesAndPermissionsSeeder extends Seeder
                 'view_only',
                 'update_item_status',
             ],
+            'Waiters' => [
+                'view_only',
+                'update_item_status',
+                'create_order',
+            ],
         ];
 
         foreach ($roles as $roleName => $permissionNames) {

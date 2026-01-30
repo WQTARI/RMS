@@ -18,9 +18,15 @@ class InvoiceController extends Controller
     public function index(Request $request)
     {
         $this->authorize('viewAny', Invoice::class);
+
+        $request->validate([
+            'table_id' => ['nullable'],
+            'status' => ['nullable', 'string', Rule::enum(\App\Enums\InvoiceStatus::class)],
+        ]);
+
         $query = Invoice::with('table.section', 'payments')->orderByDesc('created_at');
 
-        if ($request->has('table_id')) {
+        if ($request->filled('table_id')) {
             $tid = $request->input('table_id');
             if ($tid === 'null' || $tid === null) {
                 $query->whereNull('table_id');
@@ -29,7 +35,7 @@ class InvoiceController extends Controller
             }
         }
 
-        if ($request->has('status')) {
+        if ($request->filled('status')) {
             $query->where('status', $request->input('status'));
         }
 

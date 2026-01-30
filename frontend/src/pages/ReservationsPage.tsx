@@ -280,30 +280,29 @@ export const ReservationsPage = () => {
                     <StatusPill status={res.status as any} />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 mb-8">
-                    <div className="bg-white/30 backdrop-blur-md rounded-[2rem] p-6 border border-white/60 group-hover:bg-white/60 transition-colors">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">{t('common.guests_table')}</p>
+                  {/* Info Grid */}
+                  <div className="grid gap-6 mb-8 group/info">
+                    <div className="bg-white/30 backdrop-blur-md rounded-[2rem] p-6 border border-white/60 group-hover:bg-white/60 transition-colors flex items-center justify-between">
                       <div className="flex items-center gap-4">
-                        <div className="size-10 rounded-xl bg-slate-900/5 flex items-center justify-center text-slate-700 font-black">
+                        <div className="size-12 rounded-2xl bg-slate-900/5 flex items-center justify-center text-slate-700 font-black">
                           {res.number_of_guests}
                         </div>
-                        <div className="font-black text-slate-900 tracking-tighter text-lg">
+                        <div className="font-black text-slate-900 tracking-tighter text-xl">
                           {res.table?.name}
                           <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest leading-none mt-1">{res.table?.section?.name}</div>
                         </div>
                       </div>
+                      <Users className="size-6 text-slate-300" />
                     </div>
-                    <div className="bg-white/30 backdrop-blur-md rounded-[2rem] p-6 border border-white/60 group-hover:bg-white/60 transition-colors">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">{t('nav.floor_plan')}</p>
-                      <div className="flex items-center gap-4">
-                        <div className="size-10 rounded-xl bg-primary/5 flex items-center justify-center text-primary">
-                          <Users className="size-5" />
-                        </div>
-                        <div className="font-black text-slate-900 tracking-tighter leading-tight">
-                          {t('common.operational_center')}
-                        </div>
+
+                    {res.notes && (
+                      <div className="bg-amber-500/5 backdrop-blur-md rounded-[2rem] p-6 border border-amber-500/10 group-hover:bg-amber-500/10 transition-colors">
+                        <p className="text-[10px] font-black text-amber-600 uppercase tracking-[0.2em] mb-2">{t('common.notes')}</p>
+                        <p className="text-sm font-bold text-slate-700 leading-relaxed italic">
+                          "{res.notes}"
+                        </p>
                       </div>
-                    </div>
+                    )}
                   </div>
 
                   <div className="flex flex-wrap justify-end gap-3 pt-4 border-t border-white/40">
@@ -347,50 +346,61 @@ export const ReservationsPage = () => {
       </div>
 
       {convertItem && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 sm:p-4 backdrop-blur-2xl bg-slate-900/40 animate-in fade-in duration-500">
-          <div className="w-full max-w-2xl glass rounded-[4rem] p-12 sm:p-14 shadow-[0_40px_100px_-20px_rgba(108,93,211,0.3)] animate-in zoom-in-95 duration-500 border-white/60 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2" />
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-6 sm:p-4 backdrop-blur-3xl bg-slate-900/60 animate-in fade-in duration-500">
+          <div className="w-full max-w-2xl bg-white/95 rounded-[3.5rem] p-10 sm:p-14 shadow-[0_40px_100px_-20px_rgba(0,0,0,0.4)] animate-in zoom-in-95 duration-500 border border-white relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2" />
 
             <h3 className="text-4xl font-black text-slate-900 tracking-tighter mb-4">{t('common.seat_title', { name: convertItem.customer_name })}</h3>
-            <p className="text-slate-500 text-sm font-black uppercase tracking-widest opacity-60 mb-10 pb-6 border-b border-white/40">{t('common.seat_hint', { table: convertItem.table?.name })}</p>
+            <p className="text-slate-600 text-sm font-bold uppercase tracking-widest mb-10 pb-6 border-b border-slate-100">{t('common.seat_hint', { table: convertItem.table?.name })}</p>
 
-            <div className="space-y-6 max-h-[50vh] overflow-y-auto no-scrollbar pr-2 mb-10">
+            <div className="space-y-6 max-h-[50vh] overflow-y-auto no-scrollbar pr-2 mb-12">
               {convertLines.map((line, idx) => (
-                <div key={idx} className="flex flex-col sm:flex-row gap-4 p-6 glass rounded-[2.5rem] border-white/40 group/item hover:bg-white/80 transition-all">
+                <div key={idx} className="flex flex-col sm:flex-row gap-5 p-7 bg-slate-50 rounded-[2.5rem] border border-slate-200/60 group/item hover:bg-white hover:border-emerald-500/30 transition-all shadow-sm">
                   <div className="flex-1 space-y-2">
-                    <label className="field-label">{t('common.select_area')}</label>
-                    <select className="glass-input h-14 bg-white/50" value={line.menu_item_id} onChange={e => {
-                      const n = [...convertLines]; n[idx].menu_item_id = Number(e.target.value); setConvertLines(n);
-                    }}>
-                      <option value={0}>{t('common.select_area')}</option>
+                    <label className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em] ml-2 block">{t('common.item_name')}</label>
+                    <select
+                      className="w-full h-14 bg-white border border-slate-200 rounded-2xl px-6 font-bold text-slate-900 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all outline-none"
+                      value={line.menu_item_id}
+                      onChange={e => {
+                        const n = [...convertLines]; n[idx].menu_item_id = Number(e.target.value); setConvertLines(n);
+                      }}
+                    >
+                      <option value={0}>{t('common.item_name')}</option>
                       {menuItems.map(m => <option key={m.id} value={m.id}>{m.name} ({formatCurrency(m.price)})</option>)}
                     </select>
                   </div>
                   <div className="w-full sm:w-28 space-y-2">
-                    <label className="field-label">QTY</label>
-                    <input type="number" min={1} className="glass-input h-14 bg-white/50 text-center" value={line.quantity} onChange={e => {
-                      const n = [...convertLines]; n[idx].quantity = Number(e.target.value); setConvertLines(n);
-                    }} />
+                    <label className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em] text-center block">QTY</label>
+                    <input
+                      type="number"
+                      min={1}
+                      className="w-full h-14 bg-white border border-slate-200 rounded-2xl text-center font-bold text-slate-900 transition-all outline-none focus:border-emerald-500"
+                      value={line.quantity}
+                      onChange={e => {
+                        const n = [...convertLines]; n[idx].quantity = Number(e.target.value); setConvertLines(n);
+                      }}
+                    />
                   </div>
-                  <button onClick={() => setConvertLines(convertLines.filter((_, i) => i !== idx))} className="sm:self-end h-14 px-4 rounded-2xl text-accent hover:bg-accent/10 transition-colors font-black text-2xl">×</button>
+                  <button onClick={() => setConvertLines(convertLines.filter((_, i) => i !== idx))} className="sm:self-end h-14 w-14 rounded-2xl bg-slate-200/50 text-slate-500 hover:bg-accent/10 hover:text-accent-dark transition-all font-black text-2xl flex items-center justify-center">×</button>
                 </div>
               ))}
+
               <button
                 onClick={() => setConvertLines([...convertLines, { menu_item_id: 0, quantity: 1 }])}
-                className="w-full py-4 rounded-3xl border-2 border-dashed border-slate-200 text-xs font-black text-slate-400 uppercase tracking-[0.3em] hover:border-primary hover:text-primary transition-all bg-white/20"
+                className="w-full py-6 rounded-[2rem] border-2 border-dashed border-emerald-500/30 text-[11px] font-black text-emerald-600 uppercase tracking-[0.3em] hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-all duration-500 bg-emerald-500/5 shadow-sm"
               >
                 + {t('common.add_item_btn')}
               </button>
             </div>
 
             <div className="flex gap-6">
-              <button onClick={() => setConvertItem(null)} className="flex-1 py-6 rounded-3xl glass border-white/60 text-xs font-black text-slate-500 uppercase tracking-widest hover:bg-white transition-all">{t('common.cancel')}</button>
+              <button onClick={() => setConvertItem(null)} className="flex-1 py-6 rounded-3xl bg-slate-100 text-xs font-black text-slate-500 uppercase tracking-widest hover:bg-slate-900 hover:text-white transition-all shadow-sm">{t('common.cancel')}</button>
               <button
                 onClick={() => {
                   const valid = convertLines.filter(l => l.menu_item_id > 0);
                   convertMutation.mutate({ id: convertItem.id, items: valid })
                 }}
-                className="flex-1 py-6 rounded-3xl bg-emerald-500 text-white shadow-xl shadow-emerald-500/20 text-xs font-black uppercase tracking-widest hover:bg-emerald-600 transition-all active:scale-[0.98]"
+                className="flex-1 py-6 rounded-3xl bg-emerald-500 text-white shadow-xl shadow-emerald-500/30 text-xs font-black uppercase tracking-widest hover:bg-emerald-600 transition-all active:scale-[0.98] border border-emerald-400"
               >
                 {t('common.seat_confirm')}
               </button>

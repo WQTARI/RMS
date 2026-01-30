@@ -9,6 +9,7 @@ import {
   fetchPrepSections,
   fetchTableSections,
 } from '../api/sections'
+import { RestaurantSettingsPage } from './admin/RestaurantSettingsPage'
 import { createUser, deleteUser, fetchUsers } from '../api/users'
 import { fetchRoles } from '../api/roles'
 import { fetchAudits } from '../api/audits'
@@ -19,9 +20,9 @@ import { formatCurrency } from '../utils/format'
 import { Can } from '../components/Can'
 import { useTranslation } from 'react-i18next'
 import type { MenuItem } from '../types'
-import { Plus, Trash2, Search, RefreshCw, Layers, Users, Utensils, ClipboardList } from 'lucide-react'
+import { Plus, Trash2, Search, RefreshCw, Layers, Users, Utensils, ClipboardList, Store } from 'lucide-react'
 
-type AdminTab = 'menu' | 'tables' | 'users' | 'sections' | 'audits'
+type AdminTab = 'menu' | 'tables' | 'users' | 'sections' | 'audits' | 'restaurant'
 
 export const AdminDashboardPage = () => {
   const { t } = useTranslation()
@@ -52,6 +53,7 @@ export const AdminDashboardPage = () => {
     { key: 'sections', label: t('admin.sections'), icon: <ClipboardList size={18} /> },
     { key: 'users', label: t('admin.users'), icon: <Users size={18} /> },
     { key: 'audits', label: t('admin.audits'), icon: <Search size={18} /> },
+    { key: 'restaurant', label: t('admin.restaurant'), icon: <Store size={18} /> },
   ]
 
   return (
@@ -108,6 +110,11 @@ export const AdminDashboardPage = () => {
           {activeTab === 'audits' && (
             <Can I="manage_settings" fallback={<div className="p-8 card text-slate-400 italic">No permission to view logs.</div>}>
               <AuditsModule />
+            </Can>
+          )}
+          {activeTab === 'restaurant' && (
+            <Can I="manage_settings" fallback={<div className="p-8 card text-slate-400 italic">No permission to manage restaurant settings.</div>}>
+              <RestaurantSettingsPage />
             </Can>
           )}
         </div>
@@ -523,9 +530,13 @@ const UsersModule = ({ openConfirm }: { openConfirm: (t: string, d: string, cb: 
     }
   })
 
+  const selectedRoleNames = roles.filter(r => uForm.role_ids.includes(r.id)).map(r => r.name);
+  const showPrepSection = selectedRoleNames.some(name => ['Kitchen', 'Desserts', 'Drinks', 'Waiters'].includes(name));
+
   return (
     <div className="grid gap-12 lg:grid-cols-[400px,1fr] items-start">
       <div className="glass p-10 rounded-[3.5rem] border-white/60 shadow-2xl shadow-indigo-500/5 bg-white/40">
+        {/* ... existing header ... */}
         <div className="flex items-center gap-4 mb-10">
           <div className="size-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-500/20">
             <Users size={24} />
@@ -552,26 +563,39 @@ const UsersModule = ({ openConfirm }: { openConfirm: (t: string, d: string, cb: 
             <input type="password" className="w-full px-6 py-5 bg-white/60 border border-white/80 rounded-2xl text-sm font-black placeholder:text-slate-300 focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all duration-500 shadow-inner outline-none" placeholder="••••••••" value={uForm.password} onChange={e => setUForm({ ...uForm, password: e.target.value })} required />
           </div>
 
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Operational Area</label>
-            <select className="w-full px-6 py-5 bg-white border border-white/80 rounded-2xl text-xs font-black uppercase tracking-widest focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all shadow-inner" value={uForm.prep_section_id || ''} onChange={e => setUForm({ ...uForm, prep_section_id: e.target.value ? Number(e.target.value) : undefined })}>
-              <option value="">Full Access / None</option>
-              {prepSections.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-            </select>
-          </div>
+          {showPrepSection && (
+            <div className="space-y-2 animate-in slide-in-from-top-2 duration-500">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Operational Area (Prep Section)</label>
+              <select className="w-full px-6 py-5 bg-white border border-white/80 rounded-2xl text-xs font-black uppercase tracking-widest focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all shadow-inner" value={uForm.prep_section_id || ''} onChange={e => setUForm({ ...uForm, prep_section_id: e.target.value ? Number(e.target.value) : undefined })}>
+                <option value="">Full Access / None</option>
+                {prepSections.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+            </div>
+          )}
 
           <div className="space-y-4 pt-4 border-t border-white/60">
             <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] ml-1">{t('admin.assign_roles')}</label>
             <div className="flex flex-wrap gap-3">
-              {roles.map(r => (
-                <label key={r.id} className={`flex items-center gap-3 px-5 py-3 rounded-xl border text-[10px] font-black uppercase tracking-widest cursor-pointer transition-all duration-500 ${uForm.role_ids.includes(r.id) ? 'bg-slate-900 border-slate-900 text-white shadow-xl' : 'bg-white border-white/80 text-slate-500 hover:bg-white hover:border-indigo-200 shadow-sm'}`}>
-                  <input type="checkbox" className="hidden" checked={uForm.role_ids.includes(r.id)} onChange={e => {
-                    const cid = r.id;
-                    setUForm({ ...uForm, role_ids: e.target.checked ? [...uForm.role_ids, cid] : uForm.role_ids.filter(i => i !== cid) })
-                  }} />
-                  {r.name}
-                </label>
-              ))}
+              {roles.map(r => {
+                const isSelected = uForm.role_ids.includes(r.id);
+                return (
+                  <label key={r.id} className={`flex items-center gap-3 px-5 py-3 rounded-xl border text-[10px] font-black uppercase tracking-widest cursor-pointer transition-all duration-500 ${isSelected ? 'bg-slate-900 border-slate-900 text-white shadow-xl scale-105' : 'bg-white border-white/80 text-slate-500 hover:bg-white hover:border-indigo-200 shadow-sm'}`}>
+                    <input
+                      type="radio"
+                      name="role_selection"
+                      className="hidden"
+                      checked={isSelected}
+                      onChange={e => {
+                        if (e.target.checked) {
+                          setUForm({ ...uForm, role_ids: [r.id] })
+                        }
+                      }}
+                    />
+                    {isSelected && <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />}
+                    {r.name}
+                  </label>
+                );
+              })}
             </div>
           </div>
           <button className="h-[62px] w-full bg-slate-900 text-white rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] shadow-2xl hover:bg-indigo-600 hover:scale-105 active:scale-95 transition-all duration-500 mt-6">

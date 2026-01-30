@@ -43,8 +43,8 @@ class InvoiceService
         }
 
         return DB::transaction(function () use ($invoice, $payments, $tax, $discount, $closedBy) {
-            $orders = Order::where('table_id', $invoice->table_id)
-                ->whereIn('status', [OrderStatus::Open, OrderStatus::InProgress, OrderStatus::Ready])
+            $orders = Order::where('invoice_id', $invoice->id)
+                ->where('status', '!=', OrderStatus::Cancelled)
                 ->with('items')
                 ->get();
 

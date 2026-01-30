@@ -11,11 +11,35 @@ import type { MenuItem, Order } from '../types'
 import { useTranslation } from 'react-i18next'
 import { Dialog } from '../components/Dialog'
 import { useRealtime } from '../realtime/RealtimeProvider'
+import axios from 'axios'
+import { Printer } from 'lucide-react'
 
 export const PosPage = () => {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const queryClient = useQueryClient()
   const { isEnabled: isRealtimeEnabled } = useRealtime()
+  const [restaurantSettings, setRestaurantSettings] = useState({
+    restaurant_name: '',
+    restaurant_logo: '',
+  })
+
+  useEffect(() => {
+    fetchRestaurantSettings()
+  }, [])
+
+  const fetchRestaurantSettings = async () => {
+    try {
+      const response = await axios.get('/api/settings')
+      setRestaurantSettings(response.data)
+    } catch (error) {
+      console.error('Failed to fetch restaurant settings:', error)
+    }
+  }
+
+  const handlePrint = () => {
+    window.print()
+  }
+
   const {
     data: tables = [],
     isLoading: isLoadingTables,
@@ -378,7 +402,7 @@ export const PosPage = () => {
                   ))
                 ) : tables.map((table) => {
                   const hasReady = (table.orders ?? []).some(o => o.items.some(i => i.status === 'READY'))
-                  const occupantName = table.reservations?.find(r => r.status === 'ARRIVED' || r.status === 'CREATED')?.customer_name
+                  const occupantName = table.reservations?.find(r => r.status === 'ARRIVED' || r.status === 'CREATED' || r.status === 'SEATED')?.customer_name
                   const isActive = selectedTableId === table.id
 
                   return (
@@ -517,6 +541,15 @@ export const PosPage = () => {
                         </div>
                       </div>
 
+                      {order.notes && (
+                        <div className="px-8 pb-4">
+                          <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/10 flex items-center gap-3">
+                            <span className="text-[10px] font-black text-amber-600 uppercase tracking-widest bg-amber-500/10 px-2 py-0.5 rounded-lg">Note</span>
+                            <span className="text-xs font-bold text-slate-700 italic">"{order.notes}"</span>
+                          </div>
+                        </div>
+                      )}
+
                       <div className="p-8 space-y-6">
                         {order.items.map((item: any) => (
                           <div key={item.id} className="flex items-center justify-between group/item">
@@ -617,11 +650,24 @@ export const PosPage = () => {
             <div className="absolute top-0 right-0 size-64 bg-primary/5 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2 group-hover:bg-primary/10 transition-all duration-1000" />
 
             <div className="relative z-10 flex flex-col gap-2">
-              <h2 className="text-3xl font-black text-slate-900 tracking-tighter leading-none">{t('pos.invoice_summary')}</h2>
-              <div className="h-1 w-16 bg-gradient-to-r from-primary to-transparent rounded-full" />
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-3xl font-black text-slate-900 tracking-tighter leading-none">{t('pos.invoice_summary')}</h2>
+                  <div className="h-1 w-16 bg-gradient-to-r from-primary to-transparent rounded-full mt-2" />
+                </div>
+                {invoiceId && (
+                  <button
+                    onClick={handlePrint}
+                    className="p-3 rounded-2xl bg-white border border-slate-200 text-slate-400 hover:text-primary transition-all shadow-sm group/print"
+                    title={t('pos.print_receipt')}
+                  >
+                    <Printer size={18} className="group-hover/print:scale-110 transition-transform" />
+                  </button>
+                )}
+              </div>
             </div>
 
-            <div className="relative z-10 space-y-8">
+            <div className="relative z-10 space-y-8 flex-1 overflow-y-auto pr-2 custom-scrollbar">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-black text-slate-400 uppercase tracking-widest">{t('pos.subtotal')}</span>
@@ -704,13 +750,16 @@ export const PosPage = () => {
                 </div>
               </div>
 
-              {actionError && (
-                <div className="p-4 rounded-2xl bg-accent/10 border border-accent/20 text-accent-dark text-[10px] font-black uppercase tracking-widest text-center animate-pulse">
-                  {actionError}
-                </div>
-              )}
-
               <div className="flex flex-col gap-4">
+                {invoiceId && (
+                  <button
+                    onClick={handlePrint}
+                    className="flex items-center justify-center gap-3 w-full py-5 rounded-3xl bg-white border-2 border-slate-100 text-slate-600 font-black text-xs uppercase tracking-widest hover:bg-slate-50 hover:border-slate-200 transition-all shadow-sm"
+                  >
+                    <Printer size={18} />
+                    {t('pos.print_receipt') || 'Print Receipt'}
+                  </button>
+                )}
                 {!invoiceId && selectedTableId && (
                   <button onClick={() => openMutation.mutate({ tableId: selectedTableId })} className="btn-aura border-2 border-slate-900 bg-transparent text-slate-900 py-6">{openMutation.isPending ? t('pos.opening') : t('nav.pos')}</button>
                 )}
@@ -724,6 +773,12 @@ export const PosPage = () => {
                   </button>
                 </Can>
               </div>
+
+              {actionError && (
+                <div className="p-4 rounded-2xl bg-accent/10 border border-accent/20 text-accent-dark text-[10px] font-black uppercase tracking-widest text-center animate-pulse">
+                  {actionError}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -743,19 +798,19 @@ export const PosPage = () => {
                     {formatCurrency(modifierItem.price)}
                   </span>
                 </div>
-                <div className="size-20 rounded-[2rem] bg-slate-100 overflow-hidden shadow-xl border-4 border-white">
+                <div className="size-20 rounded-[2rem] bg-slate-50 overflow-hidden shadow-xl border-4 border-white/40">
                   {modifierItem.image_url && <img src={modifierItem.image_url} className="size-full object-cover" />}
                 </div>
               </div>
 
               <div className="space-y-8">
-                <div className="flex items-center justify-between p-8 glass rounded-[2.5rem] border-white/80 bg-white/60 shadow-xl shadow-indigo-500/10">
+                <div className="flex items-center justify-between p-8 glass rounded-[2.5rem] border-white/80 bg-slate-50/40 shadow-xl shadow-indigo-500/10 transition-colors hover:bg-slate-50/60">
                   <div className="space-y-1">
                     <span className="text-xs font-black text-slate-900 uppercase tracking-widest">{t('common.capacity')}</span>
                     <p className="text-[10px] text-slate-500 font-extrabold uppercase tracking-tighter">Set quantity for this item</p>
                   </div>
                   <div className="flex items-center gap-6">
-                    <button onClick={() => setModQty(q => Math.max(1, q - 1))} className="size-14 rounded-[1.5rem] glass border-white/60 flex items-center justify-center text-2xl font-black text-slate-600 hover:bg-white transition-all shadow-lg active:scale-90">-</button>
+                    <button onClick={() => setModQty(q => Math.max(1, q - 1))} className="size-14 rounded-[1.5rem] glass border-white/60 flex items-center justify-center text-2xl font-black text-slate-600 hover:bg-slate-50 transition-all shadow-lg active:scale-90">-</button>
                     <span className="text-3xl font-black text-slate-900 tabular-nums w-12 text-center">{modQty}</span>
                     <button onClick={() => setModQty(q => q + 1)} className="size-14 rounded-[1.5rem] bg-primary flex items-center justify-center text-2xl font-black text-white hover:bg-primary-dark transition-all shadow-xl shadow-primary/30 active:scale-90">+</button>
                   </div>
@@ -767,13 +822,13 @@ export const PosPage = () => {
                     placeholder="e.g. No onions, Extra spicy..."
                     value={modNotes}
                     onChange={(e) => setModNotes(e.target.value)}
-                    className="glass-input h-32 py-6 resize-none bg-white shadow-inner text-slate-900 font-bold placeholder:text-slate-300"
+                    className="glass-input h-32 py-6 resize-none bg-slate-50/20 shadow-inner text-slate-900 font-bold placeholder:text-slate-300"
                   />
                 </div>
               </div>
 
               <div className="flex gap-6 pt-6">
-                <button onClick={() => setModifierItem(null)} className="flex-1 py-6 rounded-3xl glass border-slate-200 bg-white/80 text-xs font-black text-slate-900 uppercase tracking-widest hover:bg-white transition-all shadow-md">{t('common.prev')}</button>
+                <button onClick={() => setModifierItem(null)} className="flex-1 py-6 rounded-3xl glass border-slate-200 bg-slate-50/60 text-xs font-black text-slate-900 uppercase tracking-widest hover:bg-slate-50 transition-all shadow-md">{t('common.prev')}</button>
                 <button
                   onClick={async () => {
                     try {
@@ -815,6 +870,84 @@ export const PosPage = () => {
         onClose={() => setDialog(p => ({ ...p, isOpen: false }))}
         onConfirm={dialog.onConfirm}
       />
+
+      {/* 6. Printable Receipt Template (Hidden from screen) */}
+      <div className="hidden print:block fixed inset-0 bg-white z-[9999] p-8 text-slate-900 font-sans" dir={i18n.dir()}>
+        <div className="max-w-[80mm] mx-auto space-y-6">
+          {/* Header */}
+          <div className="text-center space-y-3">
+            {restaurantSettings.restaurant_logo && (
+              <img
+                src={restaurantSettings.restaurant_logo}
+                alt="Logo"
+                className="w-24 h-24 mx-auto object-contain mb-2"
+              />
+            )}
+            <h1 className="text-xl font-black uppercase tracking-tight">
+              {restaurantSettings.restaurant_name || 'RMS RESTAURANT'}
+            </h1>
+            <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+              {new Date().toLocaleString()}
+            </div>
+            {selectedTableId && (
+              <div className="text-sm font-black border-y border-slate-100 py-2">
+                {t('common.table_name')}: {tables.find(t => t.id === selectedTableId)?.name}
+              </div>
+            )}
+          </div>
+
+          {/* Items */}
+          <div className="space-y-4">
+            <div className="flex justify-between text-[10px] font-black uppercase tracking-widest border-b border-slate-100 pb-2">
+              <span>{t('common.item')}</span>
+              <span>{t('common.total')}</span>
+            </div>
+            {(Array.isArray(orders) ? orders : (orders as any)?.data || []).flatMap((o: any) => o.items).map((item: any, idx: number) => (
+              <div key={idx} className="flex justify-between items-start gap-4">
+                <div className="space-y-0.5">
+                  <div className="text-xs font-bold leading-tight uppercase">
+                    {item.quantity}x {item.menu_item?.name}
+                  </div>
+                  {item.notes && <div className="text-[9px] text-slate-500 italic">- {item.notes}</div>}
+                </div>
+                <div className="text-xs font-bold tabular-nums">
+                  {formatCurrency(item.price * item.quantity)}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Totals */}
+          <div className="border-t border-slate-100 pt-4 space-y-2">
+            <div className="flex justify-between text-xs font-bold">
+              <span>{t('pos.subtotal')}</span>
+              <span className="tabular-nums">{formatCurrency(subtotal)}</span>
+            </div>
+            {tax > 0 && (
+              <div className="flex justify-between text-xs font-bold">
+                <span>{t('pos.tax')}</span>
+                <span className="tabular-nums">+{formatCurrency(tax)}</span>
+              </div>
+            )}
+            {discount > 0 && (
+              <div className="flex justify-between text-xs font-bold">
+                <span>{t('pos.discount')}</span>
+                <span className="tabular-nums">-{formatCurrency(discount)}</span>
+              </div>
+            )}
+            <div className="flex justify-between text-base font-black border-t-2 border-slate-900 pt-2 uppercase">
+              <span>{t('common.total')}</span>
+              <span className="tabular-nums">{formatCurrency(total)}</span>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="text-center pt-8 border-t border-dashed border-slate-200">
+            <p className="text-[10px] font-black uppercase tracking-widest mb-1">Thank You / شكراً لكم</p>
+            <p className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">Visit us again</p>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

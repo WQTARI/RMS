@@ -37,8 +37,8 @@ export const LoginPage = () => {
       <div className="absolute bottom-[-25%] right-[-15%] w-[55rem] h-[55rem] bg-purple-300/35 rounded-full blur-[120px] animate-morph opacity-70" style={{ animationDelay: '2s', animationDuration: '18s' }}></div>
       <div className="absolute top-1/4 right-1/4 w-[35rem] h-[35rem] bg-[#8E7CF0]/20 rounded-full blur-[100px] animate-pulse"></div>
 
-      {/* 2. The Modern Card: rounded-[2rem] with specific shadow and balanced padding */}
-      <div className="w-full max-w-md bg-white rounded-[2rem] p-8 md:p-10 relative z-10 shadow-[0_20px_50px_rgba(108,93,211,0.15)] border border-slate-50">
+      {/* 2. The Modern Card: glass rounded-[2rem] with specific shadow and balanced padding */}
+      <div className="w-full max-w-md bg-slate-50/70 backdrop-blur-3xl rounded-[2rem] p-8 md:p-10 relative z-10 shadow-[0_20px_50px_rgba(108,93,211,0.15)] border border-white/60">
         <div className="flex flex-col items-center mb-10">
           <div className="w-16 h-16 bg-gradient-to-br from-[#6C5DD3] to-[#8E7CF0] rounded-2xl flex items-center justify-center shadow-lg shadow-purple-200/50 animate-float mb-6">
             <Utensils className="text-white w-8 h-8" />

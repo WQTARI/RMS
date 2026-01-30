@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext'
 import { toast } from 'react-hot-toast'
 import { useTranslation } from 'react-i18next'
 
-const RealtimeContext = createContext<{ isEnabled: boolean }>({ isEnabled: false })
+const RealtimeContext = createContext<{ isEnabled: boolean; status: string }>({ isEnabled: false, status: 'initializing' })
 
 export const useRealtime = () => useContext(RealtimeContext)
 
@@ -16,12 +16,14 @@ export const RealtimeProvider = ({ children }: { children: React.ReactNode }) =>
   const { t } = useTranslation()
   const wasConnectedRef = useRef(false)
   const [isEnabled, setIsEnabled] = useState(false)
+  const [status, setStatus] = useState('initializing')
   const fallbackLoggedRef = useRef(false)
 
   useEffect(() => {
     const echo = getEcho(token)
     if (!echo) {
       setIsEnabled(false)
+      setStatus('disabled')
       return
     }
 
@@ -29,6 +31,8 @@ export const RealtimeProvider = ({ children }: { children: React.ReactNode }) =>
 
     const setupListeners = () => {
       setIsEnabled(true)
+      setStatus(connection?.state || 'connected')
+
       const tablesChannel = echo.private('tables')
       const ordersChannel = echo.private('orders')
       const orderItemsChannel = echo.private('order-items')
@@ -38,7 +42,16 @@ export const RealtimeProvider = ({ children }: { children: React.ReactNode }) =>
       if (user?.prep_section_id) {
         echo.private(`prep-sections.${user.prep_section_id}`).listen('.ProductionTicketDispatched', (event: { order: Order; items: OrderItem[] }) => {
           toast.success(t('pos.order_received', { id: event.order.id }), { icon: '🍳' })
-          queryClient.invalidateQueries({ queryKey: ['orders'] })
+
+          // Optimistic update for the kitchen orders list
+          queryClient.setQueriesData<Order[]>({ queryKey: ['orders'] }, (current) => {
+            if (!current) return [event.order]
+            const exists = current.find(o => o.id === event.order.id)
+            if (exists) return current.map(o => o.id === event.order.id ? event.order : o)
+            return [event.order, ...current]
+          })
+
+          queryClient.invalidateQueries({ queryKey: ['orders', 'prep'] })
         })
       }
 
@@ -53,19 +66,19 @@ export const RealtimeProvider = ({ children }: { children: React.ReactNode }) =>
 
       ordersChannel.listen('.OrderCreated', (event: { order: Order }) => {
         toast.success(t('pos.order_received', { id: event.order.id }), { icon: '🛒' })
-        queryClient.setQueriesData<Order[]>(({ queryKey: ['orders'] }), (current) => (current ? [event.order, ...current] : [event.order]))
+        queryClient.setQueriesData<Order[]>({ queryKey: ['orders'] }, (current) => (current ? [event.order, ...current] : [event.order]))
       })
 
       ordersChannel.listen('.OrderStatusUpdated', (event: { order: Order }) => {
         queryClient.invalidateQueries({ queryKey: ['tables'] })
-        queryClient.setQueriesData<Order[]>(({ queryKey: ['orders'] }), (current) => current ? current.map((o) => (o.id === event.order.id ? event.order : o)) : current)
+        queryClient.setQueriesData<Order[]>({ queryKey: ['orders'] }, (current) => current ? current.map((o) => (o.id === event.order.id ? event.order : o)) : current)
       })
 
       orderItemsChannel.listen('.OrderItemUpdated', (event: { orderItem: OrderItem }) => {
         if (event.orderItem.status === 'READY') {
           toast.success(t('pos.order_item_ready', { name: event.orderItem.menu_item?.name }), { icon: '🔔' })
         }
-        queryClient.setQueriesData<Order[]>(({ queryKey: ['orders'] }), (current) =>
+        queryClient.setQueriesData<Order[]>({ queryKey: ['orders'] }, (current) =>
           current ? current.map((order) => ({
             ...order,
             items: order.items.map((item) => item.id === event.orderItem.id ? event.orderItem : item),
@@ -75,7 +88,7 @@ export const RealtimeProvider = ({ children }: { children: React.ReactNode }) =>
 
       invoicesChannel.listen('.InvoiceClosed', (event: { invoice: Invoice }) => {
         toast.success(t('pos.invoice_closed_success', { id: event.invoice.id }), { icon: '💰' })
-        queryClient.setQueriesData<Invoice[]>(({ queryKey: ['invoices'] }), (current) =>
+        queryClient.setQueriesData<Invoice[]>({ queryKey: ['invoices'] }, (current) =>
           current ? current.map((invoice) => invoice.id === event.invoice.id ? event.invoice : invoice) : current
         )
         queryClient.invalidateQueries({ queryKey: ['tables'] })
@@ -85,6 +98,7 @@ export const RealtimeProvider = ({ children }: { children: React.ReactNode }) =>
     const handleStateChange = (states: { current: string }) => {
       const isNowConnected = states.current === 'connected'
       setIsEnabled(isNowConnected)
+      setStatus(states.current)
 
       if (isNowConnected) {
         setupListeners()
@@ -124,7 +138,7 @@ export const RealtimeProvider = ({ children }: { children: React.ReactNode }) =>
   }, [queryClient, token, user?.prep_section_id, t])
 
   return (
-    <RealtimeContext.Provider value={{ isEnabled }}>
+    <RealtimeContext.Provider value={{ isEnabled, status }}>
       {children}
     </RealtimeContext.Provider>
   )
