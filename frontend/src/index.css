@@ -32,41 +32,41 @@
     [dir="rtl"] body {
         font-family: 'Cairo', sans-serif !important;
     }
+}
 
-    /* Aura Ultra-Glass Architecture */
-    .glass {
-        @apply bg-slate-50/40 backdrop-blur-2xl border border-white/60 shadow-2xl shadow-indigo-500/5;
-    }
+/* Aura Ultra-Glass Architecture */
+@utility glass {
+    @apply bg-slate-50/40 backdrop-blur-2xl border border-white/60 shadow-2xl shadow-indigo-500/5;
+}
 
-    .glass-dark {
-        @apply bg-slate-900/10 backdrop-blur-xl border border-white/10;
-    }
+@utility glass-dark {
+    @apply bg-slate-900/10 backdrop-blur-xl border border-white/10;
+}
 
-    /* Standardized Aura Card */
-    .card-aura {
-        @apply glass rounded-[3rem] transition-all duration-500 hover:-translate-y-2 hover:bg-slate-50/60 hover:shadow-indigo-500/10;
-    }
+/* Standardized Aura Card */
+@utility card-aura {
+    @apply glass rounded-[3rem] transition-all duration-500 hover:-translate-y-2 hover:bg-slate-50/60 hover:shadow-indigo-500/10;
+}
 
-    /* Compact Glass Input - Aura Style */
-    .glass-input {
-        @apply w-full bg-slate-50/30 backdrop-blur-md border border-white/60 rounded-2xl px-6 py-5 text-slate-900 placeholder:text-slate-400 outline-none transition-all duration-500;
-    }
+/* Compact Glass Input - Aura Style */
+@utility glass-input {
+    @apply w-full bg-slate-50/30 backdrop-blur-md border border-white/60 rounded-2xl px-6 py-5 text-slate-900 placeholder:text-slate-400 outline-none transition-all duration-500;
+}
 
-    .glass-input:focus {
-        @apply border-primary ring-4 ring-primary/10 bg-slate-50/80;
-    }
+.glass-input:focus {
+    @apply border-primary ring-4 ring-primary/10 bg-slate-50/80;
+}
 
-    .field-label {
-        @apply text-[11px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2 mb-3 block;
-    }
+.field-label {
+    @apply text-[11px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2 mb-3 block;
+}
 
-    [dir="rtl"] .field-label {
-        @apply ml-0 mr-2;
-    }
+[dir="rtl"] .field-label {
+    @apply ml-0 mr-2;
+}
 
-    .btn-aura {
-        @apply relative bg-primary text-white font-black px-10 py-5 rounded-2xl shadow-xl shadow-primary/20 hover:shadow-2xl hover:shadow-primary/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-300 flex items-center justify-center text-center gap-3 overflow-hidden;
-    }
+@utility btn-aura {
+    @apply relative bg-primary text-white font-black px-10 py-5 rounded-2xl shadow-xl shadow-primary/20 hover:shadow-2xl hover:shadow-primary/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-300 flex items-center justify-center text-center gap-3 overflow-hidden;
 }
 
 @layer utilities {

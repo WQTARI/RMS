@@ -1,11 +1,9 @@
 import { useState, useEffect } from 'react'
-import { useTranslation } from 'react-i18next'
 import { Save, Upload, Store, Loader2, CheckCircle2 } from 'lucide-react'
 import axios from 'axios'
 import { toast } from 'react-hot-toast'
 
 export const RestaurantSettingsPage = () => {
-    const { t } = useTranslation()
     const [settings, setSettings] = useState({
         restaurant_name: '',
         restaurant_logo: '',
