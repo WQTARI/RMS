@@ -26,6 +26,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'manage_sections' => 'Manage table and prep sections.',
             'manage_users' => 'Manage system users and roles.',
             'serve_items' => 'Mark items as served (Waiter action).',
+            'view_limited_archive' => 'View only 5 invoices per day (Analysis role).',
         ];
 
         $permissionModels = [];
@@ -62,20 +63,20 @@ class RolesAndPermissionsSeeder extends Seeder
                 'manage_reservations',
             ],
             'Kitchen' => [
-                'view_only',
                 'update_item_status',
             ],
             'Desserts' => [
-                'view_only',
                 'update_item_status',
             ],
             'Drinks' => [
-                'view_only',
                 'update_item_status',
             ],
             'Waiters' => [
                 'view_only',
                 'serve_items',
+            ],
+            'Analysis' => [
+                'view_limited_archive',
             ],
         ];
 

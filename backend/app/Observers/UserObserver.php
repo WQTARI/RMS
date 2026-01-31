@@ -51,4 +51,9 @@ class UserObserver
             'description' => "User '{$user->name}' deleted",
         ]);
     }
+
+    public function saved(User $user): void
+    {
+        $user->syncPrepSectionFromRoles();
+    }
 }

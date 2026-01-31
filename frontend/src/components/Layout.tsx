@@ -31,7 +31,12 @@ const NavContent = ({
 
             <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-6 text-slate-900">
                 {navItems.map((group: any) => {
-                    const filtered = group.items.filter((item: any) => hasPermission(item.permission))
+                    const filtered = group.items.filter((item: any) => {
+                        const hasPerm = hasPermission(item.permission)
+                        const isAdmin = hasPermission('manage_settings')
+                        if (item.hideForAdmin && isAdmin) return false
+                        return hasPerm
+                    })
                     if (filtered.length === 0) return null
 
                     return (
@@ -117,8 +122,13 @@ export const Layout = () => {
     const navItems = useMemo(() => [
         {
             group: 'OPERATIONS', items: [
-                { path: '/waiter', label: t('nav.waiter'), icon: <UtensilsCrossed size={20} />, permission: 'serve_items' },
-                { path: '/floor-plan', label: t('nav.floor_plan'), icon: <Map size={20} />, permission: 'manage_reservations' },
+                { path: '/waiter', label: t('nav.waiter'), icon: <UtensilsCrossed size={20} />, permission: 'serve_items', hideForAdmin: true },
+                {
+                    path: '/floor-plan',
+                    label: t('nav.floor_plan'),
+                    icon: <LayoutDashboard size={18} />,
+                    permission: 'manage_reservations'
+                },
                 { path: '/reservations', label: t('nav.bookings'), icon: <ClipboardList size={20} />, permission: 'manage_reservations' },
                 { path: '/pos', label: t('nav.pos'), icon: <UtensilsCrossed size={20} />, permission: 'create_order' },
             ]
@@ -141,6 +151,7 @@ export const Layout = () => {
         },
         {
             group: 'INSIGHTS', items: [
+                { path: '/analysis', label: t('nav.daily_analysis'), icon: <TrendingUp size={20} />, permission: 'view_limited_archive', hideForAdmin: true },
                 { path: '/reports', label: t('nav.analytics'), icon: <TrendingUp size={20} />, permission: 'view_reports' },
                 { path: '/archive', label: t('nav.archive'), icon: <Archive size={20} />, permission: 'view_reports' },
             ]

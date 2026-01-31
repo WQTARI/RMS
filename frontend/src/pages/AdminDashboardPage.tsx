@@ -24,12 +24,7 @@ import { Plus, Trash2, Search, RefreshCw, Layers, Users, Utensils, ClipboardList
 
 type AdminTab = 'menu' | 'tables' | 'users' | 'sections' | 'audits' | 'restaurant'
 
-const getCategoryForSection = (name: string) => {
-  const n = name.toUpperCase().trim()
-  if (n.includes('DESSERT')) return 'DESSERT'
-  if (n.includes('DRINK') || n.includes('BAR')) return 'DRINK'
-  return 'FOOD'
-}
+
 
 export const AdminDashboardPage = () => {
   const { t } = useTranslation()
@@ -149,7 +144,7 @@ const MenuModule = ({ openConfirm, showError }: { openConfirm: (t: string, d: st
   const { data: prepSections = [] } = useQuery({ queryKey: ['prep-sections'], queryFn: fetchPrepSections })
 
   const [form, setForm] = useState<Partial<MenuItem>>({
-    name: '', price: 0, category: 'FOOD', prep_section_id: undefined, prep_time_minutes: 15, is_active: true, image_url: ''
+    name: '', price: 0, category: '', prep_section_id: undefined, prep_time_minutes: 15, is_active: true, image_url: ''
   })
   const [imageFile, setImageFile] = useState<File | null>(null)
 
@@ -160,7 +155,7 @@ const MenuModule = ({ openConfirm, showError }: { openConfirm: (t: string, d: st
       setForm(prev => ({
         ...prev,
         prep_section_id: defaultSection.id,
-        category: getCategoryForSection(defaultSection.name) as any
+        category: defaultSection.name.toUpperCase()
       }))
     }
   }, [prepSections])
@@ -261,26 +256,22 @@ const MenuModule = ({ openConfirm, showError }: { openConfirm: (t: string, d: st
             <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">{t('common.category')} & {t('admin.prep_sections')}</label>
             <select
               className="w-full px-6 py-5 bg-white border border-white/80 rounded-2xl text-xs font-black uppercase tracking-widest focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all shadow-inner"
-              value={`${form.category}:${form.prep_section_id}`}
+              value={form.prep_section_id || ''}
               onChange={e => {
-                const [_, sidRaw] = e.target.value.split(':');
-                const sid = Number(sidRaw);
+                const sid = Number(e.target.value);
                 const section = prepSections.find(s => s.id === sid);
-                const category = section ? getCategoryForSection(section.name) : 'FOOD';
+                const category = section ? section.name.toUpperCase() : 'GENERAL';
 
                 console.log('Selection Changed:', { value: e.target.value, sectionName: section?.name, mapping: category });
 
                 setForm(prev => ({ ...prev, category: category as any, prep_section_id: sid }));
               }}
             >
-              {prepSections.map(s => {
-                const category = getCategoryForSection(s.name);
-                return (
-                  <option key={s.id} value={`${category}:${s.id}`}>
-                    {s.name}
-                  </option>
-                );
-              })}
+              {prepSections.map(s => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -309,7 +300,18 @@ const MenuModule = ({ openConfirm, showError }: { openConfirm: (t: string, d: st
                   </span>
                 </label>
               </div>
-              {imageFile && <p className="text-[10px] text-indigo-500 font-bold ml-1">Selected: {imageFile.name}</p>}
+              {imageFile && (
+                <div className="flex items-center justify-between px-2">
+                  <p className="text-[10px] text-indigo-500 font-bold">Selected: {imageFile.name}</p>
+                  <button
+                    type="button"
+                    onClick={() => setImageFile(null)}
+                    className="text-[10px] font-black text-rose-500 uppercase tracking-widest hover:text-rose-700 transition-colors"
+                  >
+                    {t('common.cancel')}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -350,13 +352,13 @@ const MenuModule = ({ openConfirm, showError }: { openConfirm: (t: string, d: st
 
       <div className="space-y-8 min-w-0">
         <div className="glass flex gap-2 p-2 rounded-2xl border-white/60 shadow-xl shadow-indigo-500/5 w-fit overflow-x-auto overflow-y-hidden no-scrollbar">
-          {['ALL', 'FOOD', 'DESSERT', 'DRINK'].map(c => (
+          {['ALL', ...Array.from(new Set(items.map(i => i.category)))].map(c => (
             <button
               key={c}
               onClick={() => setCategoryFilter(c)}
               className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-500 ${categoryFilter === c ? 'bg-indigo-600 text-white shadow-xl' : 'text-slate-500 hover:text-indigo-600 hover:bg-white'}`}
             >
-              {c === 'ALL' ? t('common.total') : t(`common.${c.toLowerCase()}`)}
+              {c === 'ALL' ? t('common.total') : c}
             </button>
           ))}
         </div>
@@ -394,7 +396,7 @@ const MenuModule = ({ openConfirm, showError }: { openConfirm: (t: string, d: st
                   <div>
                     <h4 className="font-black text-slate-800 truncate text-base uppercase tracking-tight mb-1">{item.name}</h4>
                     <div className="flex items-center gap-2">
-                      <span className="text-[9px] uppercase font-black px-2 py-0.5 rounded-md bg-slate-900 text-white tracking-widest">{t(`common.${item.category.toLowerCase()}`)}</span>
+                      <span className="text-[9px] uppercase font-black px-2 py-0.5 rounded-md bg-slate-900 text-white tracking-widest">{item.category}</span>
                       <span className="text-[9px] uppercase font-black text-slate-400 tracking-widest truncate">{item.prep_section?.name}</span>
                     </div>
                   </div>
@@ -609,7 +611,10 @@ const UsersModule = ({ openConfirm }: { openConfirm: (t: string, d: string, cb: 
   })
 
   const selectedRoleNames = roles.filter(r => uForm.role_ids.includes(r.id)).map(r => r.name);
-  const showPrepSection = selectedRoleNames.some(name => ['Kitchen', 'Desserts', 'Drinks', 'Waiters'].includes(name));
+  const showPrepSection = selectedRoleNames.some(name =>
+    ['Kitchen', 'Desserts', 'Drinks', 'Waiters', 'POS'].includes(name) ||
+    prepSections.some(ps => ps.name === name)
+  );
 
   return (
     <div className="grid gap-12 lg:grid-cols-[400px,1fr] items-start">

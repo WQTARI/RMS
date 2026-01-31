@@ -26,9 +26,9 @@ class InvoiceController extends Controller
 
         $query = Invoice::with('table.section', 'payments')->orderByDesc('created_at');
 
-        if ($request->filled('table_id')) {
+        if ($request->has('table_id')) {
             $tid = $request->input('table_id');
-            if ($tid === 'null' || $tid === null) {
+            if ($tid === 'null' || $tid === null || $tid === '') {
                 $query->whereNull('table_id');
             } else {
                 $query->where('table_id', $tid);

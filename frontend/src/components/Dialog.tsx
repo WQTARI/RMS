@@ -30,6 +30,12 @@ export const Dialog: React.FC<DialogProps> = ({
     const { t } = useTranslation()
     const [inputValue, setInputValue] = useState(defaultValue)
 
+    React.useEffect(() => {
+        if (isOpen) {
+            setInputValue(defaultValue)
+        }
+    }, [isOpen, defaultValue])
+
     if (!isOpen) return null
 
     const handleConfirm = () => {

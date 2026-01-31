@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Enums\MenuCategory;
 use App\Models\MenuItem;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -31,15 +30,15 @@ class MenuItemController extends Controller
     public function store(Request $request)
     {
         \Illuminate\Support\Facades\Log::info('MenuItem Store Request:', $request->all());
-        $this->authorize('manage_settings');
-        
+        $this->authorize('manage_menu');
+
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'price' => ['required', 'numeric', 'min:0'],
             'description' => ['nullable', 'string'],
             'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
             'image_url' => ['nullable', 'string'],
-            'category' => ['required', 'string', Rule::in(['FOOD', 'DESSERT', 'DRINK'])],
+            'category' => ['required', 'string', 'max:255'],
             'prep_section_id' => ['required', 'exists:prep_sections,id'],
             'prep_time_minutes' => ['required', 'integer', 'min:1'],
             'is_active' => ['nullable', 'boolean'],
@@ -71,7 +70,7 @@ class MenuItemController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $this->authorize('manage_settings');
+        $this->authorize('manage_menu');
         $menuItem = MenuItem::findOrFail($id);
 
         $data = $request->validate([
@@ -80,7 +79,7 @@ class MenuItemController extends Controller
             'description' => ['nullable', 'string'],
             'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
             'image_url' => ['nullable', 'string'],
-            'category' => ['sometimes', 'string', Rule::in(['FOOD', 'DESSERT', 'DRINK'])],
+            'category' => ['sometimes', 'string', 'max:255'],
             'prep_section_id' => ['sometimes', 'exists:prep_sections,id'],
             'prep_time_minutes' => ['sometimes', 'integer', 'min:1'],
             'is_active' => ['nullable', 'boolean'],
@@ -103,7 +102,7 @@ class MenuItemController extends Controller
      */
     public function destroy(string $id)
     {
-        $this->authorize('manage_settings');
+        $this->authorize('manage_menu');
         MenuItem::findOrFail($id)->delete();
 
         return response()->json(['message' => 'Deleted']);

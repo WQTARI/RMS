@@ -9,6 +9,7 @@ import { SectionOrdersPage } from './pages/SectionOrdersPage'
 import { AdminDashboardPage } from './pages/AdminDashboardPage'
 import { ReportsPage } from './pages/ReportsPage'
 import { OrderHistoryPage } from './pages/OrderHistoryPage'
+import { AnalysisPage } from './pages/AnalysisPage'
 import WaiterPage from './pages/WaiterPage'
 import { useAuth } from './context/AuthContext'
 import { AccessDenied } from './components/AccessDenied'
@@ -28,23 +29,34 @@ const RequireAuth = ({ children }: { children: React.ReactNode }) => {
 const RoleBasedRedirect = () => {
   const { user, hasPermission } = useAuth()
 
-  if (hasPermission('serve_items')) {
-    return <Navigate to="/waiter" replace />
-  }
-  if (hasPermission('manage_settings')) {
-    return <FloorPlanPage />
-  }
-  if (hasPermission('manage_reservations')) {
-    return <FloorPlanPage />
-  }
+  // 1. Production staff go to their section (HIGHEST PRIORITY)
   if (user?.prep_section_id) {
     return <Navigate to={`/sections/${user.prep_section_id}/orders`} replace />
   }
+
+  // 2. Admin/Managers should go to Floor Plan first
+  if (hasPermission('manage_settings') || hasPermission('manage_reservations')) {
+    return <Navigate to="/floor-plan" replace />
+  }
+
+  // 3. Analysis role goes to analysis page
+  if (hasPermission('view_limited_archive')) {
+    return <Navigate to="/analysis" replace />
+  }
+
+  // 4. Waiters go to Waiter Station
+  if (hasPermission('serve_items')) {
+    return <Navigate to="/waiter" replace />
+  }
+
+  // 5. POS users
   if (hasPermission('create_order')) {
     return <Navigate to="/pos" replace />
   }
+
+  // Default view-only
   if (hasPermission('view_only')) {
-    return <FloorPlanPage />
+    return <Navigate to="/floor-plan" replace />
   }
 
   return <AccessDenied />
@@ -80,6 +92,15 @@ function App() {
           <Route
             index
             element={<RoleBasedRedirect />}
+          />
+          {/* Missing Floor Plan Route */}
+          <Route
+            path="floor-plan"
+            element={
+              <RequirePermission permission="manage_reservations">
+                <FloorPlanPage />
+              </RequirePermission>
+            }
           />
           <Route
             path="reservations"
@@ -134,6 +155,14 @@ function App() {
             element={
               <RequirePermission permission="view_reports">
                 <OrderHistoryPage />
+              </RequirePermission>
+            }
+          />
+          <Route
+            path="analysis"
+            element={
+              <RequirePermission permission="view_limited_archive">
+                <AnalysisPage />
               </RequirePermission>
             }
           />

@@ -9,6 +9,16 @@ class PrepSectionObserver
 {
     public function created(PrepSection $prepSection): void
     {
+        // 1. Create a Role for this section
+        $role = \App\Models\Role::firstOrCreate(
+            ['name' => $prepSection->name],
+            ['description' => "Automated role for {$prepSection->name} section staff"]
+        );
+
+        // 2. Assign basic production permissions (STRICT: No view_only)
+        $permissions = \App\Models\Permission::whereIn('name', ['update_item_status'])->pluck('id');
+        $role->permissions()->syncWithoutDetaching($permissions);
+
         SystemAudit::create([
             'auditable_type' => PrepSection::class,
             'auditable_id' => $prepSection->id,
@@ -16,9 +26,9 @@ class PrepSectionObserver
             'action' => 'CREATED',
             'new_values' => [
                 'name' => $prepSection->name,
-                'description' => $prepSection->description,
+                'automated_role' => $role->name,
             ],
-            'description' => "Prep section '{$prepSection->name}' created",
+            'description' => "Prep section '{$prepSection->name}' created with automated role '{$role->name}'",
         ]);
     }
 
@@ -37,8 +47,11 @@ class PrepSectionObserver
 
     public function deleted(PrepSection $prepSection): void
     {
-        // Cascade soft delete to all menu items in this section
+        // 1. Cascade soft delete to all menu items in this section
         $prepSection->menuItems()->delete();
+
+        // We might not want to delete the role if it's being used by others, 
+        // but for now, we'll keep it simple and just cleanup the user.
 
         SystemAudit::create([
             'auditable_type' => PrepSection::class,
@@ -47,7 +60,6 @@ class PrepSectionObserver
             'action' => 'DELETED',
             'old_values' => [
                 'name' => $prepSection->name,
-                'description' => $prepSection->description,
             ],
             'description' => "Prep section '{$prepSection->name}' deleted (cascaded to menu items)",
         ]);

@@ -26,6 +26,11 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::get('/auth/me', [AuthController::class, 'me']);
     Route::post('/auth/logout', [AuthController::class, 'logout']);
 
+    Route::middleware('permission:view_only,view_limited_archive,update_item_status')->group(function () {
+        Route::get('/orders', [OrderController::class, 'index']);
+        Route::get('/orders/{id}', [OrderController::class, 'show']);
+    });
+
     Route::middleware('permission:view_only')->group(function () {
         Route::get('/table-sections', [TableSectionController::class, 'index']);
         Route::get('/prep-sections', [PrepSectionController::class, 'index']);
@@ -35,8 +40,6 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
         Route::get('/reservations/{id}', [ReservationController::class, 'show']);
         Route::get('/menu-items', [MenuItemController::class, 'index']);
         Route::get('/menu-items/{id}', [MenuItemController::class, 'show']);
-        Route::get('/orders', [OrderController::class, 'index']);
-        Route::get('/orders/{id}', [OrderController::class, 'show']);
         Route::get('/invoices', [InvoiceController::class, 'index']);
         Route::get('/invoices/{id}', [InvoiceController::class, 'show']);
     });

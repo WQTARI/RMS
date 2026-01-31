@@ -123,7 +123,7 @@ export const SectionOrdersPage = () => {
                         const elapsed = getElapsedMinutes(order.created_at, currentTime)
                         const safeElapsed = isNaN(elapsed) || elapsed < 0 ? 0 : elapsed
                         const urgency = getUrgencyClasses(safeElapsed)
-                        const tableName = order.table?.name || order.customer_name || t('pos.take_away')
+                        const tableName = order.table?.name || t('pos.take_away')
 
                         return (
                             <div key={order.id} className={`rounded-[2.5rem] border border-white/40 p-10 glass transition-all duration-700 shadow-2xl hover:shadow-indigo-500/10 group ${urgency}`}>

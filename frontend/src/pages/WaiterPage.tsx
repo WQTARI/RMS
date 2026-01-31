@@ -34,7 +34,10 @@ export default function WaiterPage() {
         queryKey: ['orders', 'waiter'],
         queryFn: async () => {
             const response = await apiClient.get('/orders', {
-                params: { paginate: false }
+                params: {
+                    paginate: false,
+                    ready_only: true
+                }
             })
             return response.data
         },
@@ -108,7 +111,10 @@ export default function WaiterPage() {
                                             {t('common.table_name', 'Table')}
                                         </div>
                                         <div className="text-3xl font-black text-slate-900 uppercase tracking-tighter">
-                                            {item.order.table?.name || item.order.customer_name || `Order #${item.order.id}`}
+                                            {item.order.table?.name
+                                                ? `${item.order.table.name}${item.order.customer_name ? ` (${item.order.customer_name})` : ''}`
+                                                : (item.order.customer_name || `${t('common.order', 'Order')} #${item.order.id}`)
+                                            }
                                         </div>
                                     </div>
 

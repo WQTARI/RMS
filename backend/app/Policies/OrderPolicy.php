@@ -10,11 +10,13 @@ use Illuminate\Support\Facades\Log;
 
 class OrderPolicy
 {
-    /**
-     * Perform pre-authorization checks.
-     */
     public function before(User $user, string $ability): ?bool
     {
+        // Admin doesn't have access to Analysis page specifically
+        if ($ability === 'view_limited_archive') {
+            return null;
+        }
+
         if ($user->hasPermission('manage_settings')) {
             return true;
         }
@@ -26,7 +28,9 @@ class OrderPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->hasPermission('view_only');
+        return $user->hasPermission('view_only') ||
+            $user->hasPermission('view_limited_archive') ||
+            $user->hasPermission('update_item_status');
     }
 
     /**
@@ -34,7 +38,7 @@ class OrderPolicy
      */
     public function view(User $user, Order $order): bool
     {
-        return $user->hasPermission('view_only');
+        return $user->hasPermission('view_only') || $user->hasPermission('update_item_status');
     }
 
     /**

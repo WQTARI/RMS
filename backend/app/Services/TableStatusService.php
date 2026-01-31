@@ -41,7 +41,9 @@ class TableStatusService
             return $start->greaterThan($now);
         });
 
-        if ($hasOpenOrder || $hasOpenInvoice) {
+        // A table is occupied if it has active orders. 
+        // We ignore "empty" open invoices to prevent ghost occupancy.
+        if ($hasOpenOrder) {
             $table->status = TableStatus::Occupied;
         } elseif ($hasCurrentReservation) {
             $table->status = TableStatus::Reserved;

@@ -2,7 +2,7 @@ export type TableStatus = 'AVAILABLE' | 'RESERVED' | 'OCCUPIED'
 export type OrderItemStatus = 'PENDING' | 'IN_PROGRESS' | 'READY' | 'SERVED' | 'CANCELLED'
 export type OrderStatus = 'OPEN' | 'IN_PROGRESS' | 'READY' | 'CLOSED' | 'CANCELLED'
 export type InvoiceStatus = 'OPEN' | 'PAID' | 'CANCELLED'
-export type MenuCategory = 'FOOD' | 'DESSERT' | 'DRINK'
+export type MenuCategory = string
 export type PaymentMethod = 'CASH' | 'ELECTRONIC'
 export type ReservationStatus = 'CREATED' | 'ARRIVED' | 'SEATED' | 'CANCELLED' | 'COMPLETED'
 

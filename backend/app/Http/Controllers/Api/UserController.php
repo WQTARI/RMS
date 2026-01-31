@@ -46,6 +46,8 @@ class UserController extends Controller
 
         if (!empty($data['role_ids'])) {
             $user->roles()->sync($data['role_ids']);
+            $user->load('roles'); // Ensure roles are loaded for the sync logic
+            $user->syncPrepSectionFromRoles();
         }
 
         return response()->json($user->load('roles.permissions'), 201);
@@ -91,6 +93,8 @@ class UserController extends Controller
 
         if (array_key_exists('role_ids', $data)) {
             $user->roles()->sync($data['role_ids'] ?? []);
+            $user->load('roles');
+            $user->syncPrepSectionFromRoles();
         }
 
         return response()->json($user->load('roles.permissions'));

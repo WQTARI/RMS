@@ -45,6 +45,27 @@ class Order extends Model
         'closed_at' => 'datetime',
     ];
 
+    protected $appends = ['customer_name'];
+
+    /**
+     * Get the customer name for this order.
+     * Prioritizes invoice name (most up-to-date), then falls back to reservation name.
+     */
+    public function getCustomerNameAttribute(): ?string
+    {
+        // 1. Check associated invoice (where name is persisted for takeaways/dine-in)
+        if ($this->invoice && $this->invoice->customer_name) {
+            return $this->invoice->customer_name;
+        }
+
+        // 2. Fallback to reservation (if dine-in with booking)
+        if ($this->reservation && $this->reservation->customer_name) {
+            return $this->reservation->customer_name;
+        }
+
+        return null;
+    }
+
     public function setStatusAttribute(mixed $value): void
     {
         $status = $value instanceof OrderStatus ? $value : OrderStatus::from($value);

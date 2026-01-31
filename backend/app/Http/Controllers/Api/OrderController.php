@@ -10,6 +10,7 @@ use App\Models\OrderItem;
 use App\Services\OrderService;
 use App\Services\TableStatusService;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Validation\Rule;
 
 class OrderController extends Controller
@@ -69,6 +70,12 @@ class OrderController extends Controller
             }
         }
 
+        if ($request->boolean('ready_only')) {
+            $query->whereHas('items', function ($q) {
+                $q->where('status', OrderItemStatus::Ready);
+            });
+        }
+
         $perPage = request('per_page', 20);
         $user = auth()->user();
 
@@ -77,6 +84,20 @@ class OrderController extends Controller
             $query->whereHas('items', function ($q) use ($user) {
                 $q->where('prep_section_id', $user->prep_section_id);
             });
+        }
+
+        // Apply 5-record limit for Analysis role early
+        if ($user && ($user->hasPermission('view_limited_archive') || $user->email === 'stat@rms.com')) {
+            $results = $query->limit(5)->get();
+            return response()->json([
+                'data' => $results,
+                'current_page' => 1,
+                'last_page' => 1,
+                'per_page' => 5,
+                'total' => $results->count(),
+                'from' => 1,
+                'to' => $results->count()
+            ]);
         }
 
         if (request()->boolean('paginate', true)) {
@@ -91,8 +112,16 @@ class OrderController extends Controller
             // Further filter items within orders to only show those belonging to the user's section
             if ($user && $user->prep_section_id) {
                 foreach ($orders as $order) {
+                    /** @var \App\Models\Order $order */
                     $order->setRelation('items', $order->items->filter(fn($item) => $item->prep_section_id === $user->prep_section_id)->values());
                 }
+            }
+        }
+
+        if (request()->boolean('ready_only')) {
+            foreach ($orders as $order) {
+                /** @var \App\Models\Order $order */
+                $order->setRelation('items', $order->items->filter(fn($item) => $item->status === OrderItemStatus::Ready)->values());
             }
         }
 
@@ -226,16 +255,8 @@ class OrderController extends Controller
     public function serveItem(string $id)
     {
         $orderItem = OrderItem::with('order.table')->findOrFail($id);
-        
-        // Check permission
-        if (!auth()->user()->can('serve_items')) {
-            abort(403, 'Not authorized to serve items.');
-        }
 
-        // Only allow serving items that are READY
-        if ($orderItem->status !== OrderItemStatus::Ready) {
-            return response()->json(['message' => 'Item must be READY to be served.'], 400);
-        }
+        $this->authorize('serve', $orderItem);
 
         $orderItem = app(OrderService::class)->updateItemStatus($orderItem, OrderItemStatus::Served);
 

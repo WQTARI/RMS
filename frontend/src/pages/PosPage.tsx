@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { fetchTables } from '../api/tables'
+import { fetchPrepSections } from '../api/sections'
 import { fetchOrders, createOrder, addItemsToOrder, confirmOrder, cancelOrder } from '../api/orders'
 import { fetchMenuItems } from '../api/menuItems'
 import { closeInvoice, fetchInvoices, fetchOpenInvoiceForTable, openInvoice } from '../api/invoices'
@@ -47,6 +48,11 @@ export const PosPage = () => {
     queryKey: ['tables'],
     queryFn: fetchTables,
     refetchInterval: isRealtimeEnabled ? false : 5000,
+  })
+
+  const { data: prepSections = [] } = useQuery({
+    queryKey: ['prep-sections'],
+    queryFn: fetchPrepSections,
   })
 
   const [selectedTableId, setSelectedTableId] = useState<number | null>(null)
@@ -99,7 +105,7 @@ export const PosPage = () => {
 
   const [actionError, setActionError] = useState<string | null>(null)
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
-  const categories = ['ALL', 'FOOD', 'DESSERT', 'DRINK']
+  const categories = useMemo(() => ['ALL', ...prepSections.map(s => s.name.toUpperCase())], [prepSections])
   useEffect(() => {
     if (!selectedCategory && menuItems.length > 0) {
       setSelectedCategory('ALL')
@@ -110,7 +116,7 @@ export const PosPage = () => {
     isOpen: boolean;
     title: string;
     description?: string;
-    type: 'info' | 'danger' | 'warning' | 'prompt';
+    type: 'info' | 'danger' | 'warning' | 'prompt' | 'success';
     onConfirm: (val?: string) => void;
   }>({ isOpen: false, title: '', type: 'info', onConfirm: () => { } })
   const [modifierItem, setModifierItem] = useState<MenuItem | null>(null)
@@ -159,7 +165,7 @@ export const PosPage = () => {
 
   useEffect(() => {
     if (!selectedCategory && categories.length > 0) {
-      setSelectedCategory(categories[0])
+      setSelectedCategory('ALL')
     }
   }, [categories, selectedCategory])
 
@@ -174,15 +180,8 @@ export const PosPage = () => {
     onError: () => setActionError('Failed to open invoice.'),
   })
 
-  // Auto-Open Invoice Logic
-  useEffect(() => {
-    if (selectedTableId !== null && !invoiceId && !openMutation.isPending && !invoiceLoading) {
-      const table = tables.find(t => t.id === selectedTableId)
-      if (table) {
-        openMutation.mutate({ tableId: selectedTableId })
-      }
-    }
-  }, [selectedTableId, invoiceId, tables, invoiceLoading, openMutation])
+  // Auto-Open Invoice Logic removed to prevent automatic table occupancy.
+  // Invoices will now be created only when the first item is added.
 
   const [paymentLines, setPaymentLines] = useState<{ method: string; amount: number }[]>([
     { method: 'CASH', amount: 0 }
@@ -351,9 +350,17 @@ export const PosPage = () => {
                   onClick={() => setDialog({
                     isOpen: true,
                     title: t('pos.take_away'),
-                    description: t('pos.customer_name_prompt') || 'Enter customer name:',
+                    description: t('pos.customer_name_prompt'),
                     type: 'prompt',
-                    onConfirm: (val) => openMutation.mutate({ tableId: null, customerName: val })
+                    onConfirm: (val) => {
+                      if (val) {
+                        openMutation.mutate({ tableId: null, customerName: val });
+                      } else {
+                        // Fallback or skip if name is required? User didn't specify it's required.
+                        // But let's at least try to open it.
+                        openMutation.mutate({ tableId: null });
+                      }
+                    }
                   })}
                   className={`group relative flex flex-col items-center justify-center rounded-[2rem] border-2 aspect-square transition-all duration-500 hover:-translate-y-2 ${selectedTableId === null && !invoiceId
                     ? 'border-primary bg-primary/10 text-primary shadow-xl shadow-primary/20'
@@ -492,7 +499,7 @@ export const PosPage = () => {
                           <div className={`size-3 rounded-full ${isConfirmed ? 'bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.4)] animate-pulse' : 'bg-amber-500 shadow-[0_0_12px_rgba(245,158,11,0.4)]'}`} />
                           <div className="flex flex-col">
                             <span className="text-xs font-black text-slate-900 uppercase tracking-widest leading-none mb-1">
-                              {t('pos.order_num')}#{order.id}
+                              {order.customer_name ? `${order.customer_name} (#${order.id})` : `${t('pos.order_num')}#${order.id}`}
                             </span>
                             <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">
                               {createdTime}
@@ -607,7 +614,7 @@ export const PosPage = () => {
                         : 'bg-white/40 text-slate-500 hover:bg-white/80 hover:text-primary border border-white/20 shadow-lg shadow-indigo-500/5'}
                       `}
                     >
-                      {t(`common.${cat.toLowerCase()}`)}
+                      {cat === 'ALL' ? t('common.total') : cat}
                     </button>
                   ))}
                 </div>
@@ -714,8 +721,8 @@ export const PosPage = () => {
                         setPaymentLines([{ method: isVisa ? 'CASH' : 'ELECTRONIC', amount: total }]);
                       }}
                       className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-500 shadow-md ${paymentLines.length === 1 && paymentLines[0].method === 'ELECTRONIC'
-                          ? 'text-white bg-indigo-500 border border-indigo-600 hover:bg-indigo-600 shadow-indigo-500/20'
-                          : 'text-indigo-600 bg-indigo-50 border border-indigo-100 hover:bg-indigo-100 hover:border-indigo-200 shadow-indigo-500/5'
+                        ? 'text-white bg-indigo-500 border border-indigo-600 hover:bg-indigo-600 shadow-indigo-500/20'
+                        : 'text-indigo-600 bg-indigo-50 border border-indigo-100 hover:bg-indigo-100 hover:border-indigo-200 shadow-indigo-500/5'
                         }`}
                     >
                       VISA
@@ -891,8 +898,8 @@ export const PosPage = () => {
           setDialog(p => ({ ...p, isOpen: false }));
           if (lastClosedInvoice) setLastClosedInvoice(null);
         }}
-        onConfirm={() => {
-          dialog.onConfirm();
+        onConfirm={(val) => {
+          dialog.onConfirm(val);
           if (lastClosedInvoice) {
             handlePrint();
             setDialog(p => ({ ...p, isOpen: false }));

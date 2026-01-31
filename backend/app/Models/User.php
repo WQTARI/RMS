@@ -70,4 +70,18 @@ class User extends Authenticatable
             ->whereHas('permissions', fn($query) => $query->where('name', $permission))
             ->exists();
     }
+
+    public function syncPrepSectionFromRoles(): void
+    {
+        if ($this->prep_section_id)
+            return;
+
+        $roleNames = $this->roles->pluck('name')->toArray();
+        $section = \App\Models\PrepSection::whereIn('name', $roleNames)->first();
+
+        if ($section) {
+            $this->prep_section_id = $section->id;
+            $this->saveQuietly();
+        }
+    }
 }

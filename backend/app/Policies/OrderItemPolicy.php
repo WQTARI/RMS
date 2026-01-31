@@ -35,4 +35,12 @@ class OrderItemPolicy
 
         return true;
     }
+
+    /**
+     * Determine whether the user can serve (mark as served) a specific item.
+     */
+    public function serve(User $user, OrderItem $orderItem): bool
+    {
+        return $user->hasPermission('serve_items') && $orderItem->status === \App\Enums\OrderItemStatus::Ready;
+    }
 }

@@ -94,6 +94,8 @@
         "null": "N/A"
     },
     "nav": {
+        "daily_analysis": "Daily Analysis",
+        "waiter": "Waiter Station",
         "floor_plan": "Floor Plan",
         "bookings": "Bookings",
         "pos": "POS Terminal",
