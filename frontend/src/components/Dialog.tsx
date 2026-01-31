@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { X, AlertTriangle, AlertCircle, HelpCircle } from 'lucide-react'
+import { X, AlertTriangle, AlertCircle, HelpCircle, CheckCircle } from 'lucide-react'
 
 interface DialogProps {
     isOpen: boolean
@@ -10,7 +10,7 @@ interface DialogProps {
     description?: string
     confirmText?: string
     cancelText?: string
-    type?: 'info' | 'danger' | 'warning' | 'prompt'
+    type?: 'info' | 'danger' | 'warning' | 'prompt' | 'success'
     placeholder?: string
     defaultValue?: string
 }
@@ -41,14 +41,16 @@ export const Dialog: React.FC<DialogProps> = ({
         info: <HelpCircle className="w-6 h-6 text-indigo-600" />,
         danger: <AlertCircle className="w-6 h-6 text-rose-600" />,
         warning: <AlertTriangle className="w-6 h-6 text-amber-600" />,
-        prompt: <HelpCircle className="w-6 h-6 text-indigo-600" />
+        prompt: <HelpCircle className="w-6 h-6 text-indigo-600" />,
+        success: <CheckCircle className="w-6 h-6 text-emerald-600" />
     }
 
     const buttonColors = {
         info: 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-200',
         danger: 'bg-rose-600 hover:bg-rose-700 shadow-rose-200',
         warning: 'bg-amber-600 hover:bg-amber-700 shadow-amber-200',
-        prompt: 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-200'
+        prompt: 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-200',
+        success: 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-200'
     }
 
     return (
@@ -69,7 +71,7 @@ export const Dialog: React.FC<DialogProps> = ({
                 </button>
 
                 <div className="flex flex-col items-center text-center">
-                    <div className={`p-4 rounded-3xl mb-6 ${type === 'danger' ? 'bg-rose-50' : type === 'warning' ? 'bg-amber-50' : 'bg-indigo-50'}`}>
+                    <div className={`p-4 rounded-3xl mb-6 ${type === 'danger' ? 'bg-rose-50' : type === 'warning' ? 'bg-amber-50' : type === 'success' ? 'bg-emerald-50' : 'bg-indigo-50'}`}>
                         {Icons[type]}
                     </div>
 

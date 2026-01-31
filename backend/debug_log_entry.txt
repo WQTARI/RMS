@@ -1,0 +1,1 @@
+[2026-01-31 12:49:50] local.INFO: MenuItem Store Request: {"request_id":"833f15c0-4d43-4702-be4d-ea377ba02d36","user_id":null,"path":"api/menu-items","method":"POST","name":"disis","price":3,"category":"FOOD","prep_section_id":2,"prep_time_minutes":15,"is_active":true,"image_url":null} 

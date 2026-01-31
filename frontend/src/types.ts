@@ -78,6 +78,8 @@ export interface Order {
   started_at?: string | null
   items: OrderItem[]
   table?: RestaurantTable
+  invoice?: Invoice
+  reservation?: Reservation
 }
 
 export interface InvoicePayment {
@@ -89,6 +91,7 @@ export interface InvoicePayment {
 export interface Invoice {
   id: number
   table_id: number | null
+  customer_name?: string | null
   status: InvoiceStatus
   subtotal: number
   tax: number

@@ -20,7 +20,8 @@ class ReservationService
         bool $forUpdate = false,
         ?int $excludeReservationId = null
     ): bool {
-        $end = $start->copy()->addMinutes($durationMinutes);
+        $duration = $durationMinutes > 0 ? $durationMinutes : 180;
+        $end = $start->copy()->addMinutes($duration);
 
         $reservations = Reservation::query()
             ->where('table_id', $tableId)
@@ -32,7 +33,8 @@ class ReservationService
 
         return $reservations->contains(function (Reservation $reservation) use ($start, $end) {
             $reservationStart = Carbon::parse($reservation->date_time);
-            $reservationEnd = $reservationStart->copy()->addMinutes($reservation->duration_minutes);
+            $duration = $reservation->duration_minutes > 0 ? $reservation->duration_minutes : 180;
+            $reservationEnd = $reservationStart->copy()->addMinutes($duration);
 
             return $reservationStart < $end && $start < $reservationEnd;
         });
@@ -119,7 +121,8 @@ class ReservationService
             ->where('date_time', '<=', $now)
             ->get()
             ->contains(function (Reservation $reservation) use ($now) {
-                $end = Carbon::parse($reservation->date_time)->addMinutes($reservation->duration_minutes);
+                $duration = $reservation->duration_minutes > 0 ? $reservation->duration_minutes : 180;
+                $end = Carbon::parse($reservation->date_time)->addMinutes($duration);
                 return $now->lessThan($end);
             });
     }

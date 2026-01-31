@@ -11,8 +11,8 @@ import type { MenuItem, Order } from '../types'
 import { useTranslation } from 'react-i18next'
 import { Dialog } from '../components/Dialog'
 import { useRealtime } from '../realtime/RealtimeProvider'
-import axios from 'axios'
 import { Printer } from 'lucide-react'
+import { fetchSettings as fetchRestaurantSettingsApi } from '../api/settings'
 
 export const PosPage = () => {
   const { t, i18n } = useTranslation()
@@ -24,13 +24,13 @@ export const PosPage = () => {
   })
 
   useEffect(() => {
-    fetchRestaurantSettings()
+    loadRestaurantSettings()
   }, [])
 
-  const fetchRestaurantSettings = async () => {
+  const loadRestaurantSettings = async () => {
     try {
-      const response = await axios.get('/api/settings')
-      setRestaurantSettings(response.data)
+      const data = await fetchRestaurantSettingsApi()
+      setRestaurantSettings(prev => ({ ...prev, ...data }))
     } catch (error) {
       console.error('Failed to fetch restaurant settings:', error)
     }
@@ -51,6 +51,7 @@ export const PosPage = () => {
 
   const [selectedTableId, setSelectedTableId] = useState<number | null>(null)
   const [invoiceId, setInvoiceId] = useState<number | null>(null)
+  const [lastClosedInvoice, setLastClosedInvoice] = useState<any | null>(null)
   const [tax, setTax] = useState(0)
   const [discount, setDiscount] = useState(0)
 
@@ -196,9 +197,7 @@ export const PosPage = () => {
     setPaymentLines(next)
   }
 
-  const handleQuickCash = () => {
-    setPaymentLines([{ method: 'CASH', amount: total }])
-  }
+
 
   const closeMutation = useMutation({
     mutationFn: (payload: { id: number; tax: number; discount: number; payments: { method: string; amount: number }[] }) =>
@@ -207,7 +206,8 @@ export const PosPage = () => {
         discount: payload.discount,
         payments: payload.payments,
       }),
-    onSuccess: () => {
+    onSuccess: (data) => {
+      setLastClosedInvoice(data)
       setInvoiceId(null)
       setSelectedTableId(null)
       setTax(0)
@@ -217,6 +217,14 @@ export const PosPage = () => {
       queryClient.invalidateQueries({ queryKey: ['tables'] })
       queryClient.invalidateQueries({ queryKey: ['orders'] })
       queryClient.invalidateQueries({ queryKey: ['invoices'] })
+
+      setDialog({
+        isOpen: true,
+        title: t('pos.payment_success', 'Payment Successful'),
+        description: t('pos.payment_success_desc', 'Invoice has been paid and closed successfully.'),
+        type: 'success', // Use 'success' type if available in Dialog, otherwise 'info'
+        onConfirm: () => setLastClosedInvoice(null) // Reset on close
+      })
     },
     onError: (e) => {
       console.error('Closing failed:', e)
@@ -700,11 +708,23 @@ export const PosPage = () => {
                 <div className="flex items-center justify-between">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('pos.payment_methods')}</label>
                   <div className="flex gap-2">
-                    <button onClick={handleQuickCash} className="px-5 py-2.5 rounded-xl text-[10px] font-black text-emerald-600 uppercase tracking-widest bg-emerald-500/10 border border-emerald-500/10 hover:bg-emerald-500 hover:text-white transition-all duration-500">
-                      100% {t('pos.cash')}
+                    <button
+                      onClick={() => {
+                        const isVisa = paymentLines.length === 1 && paymentLines[0].method === 'ELECTRONIC';
+                        setPaymentLines([{ method: isVisa ? 'CASH' : 'ELECTRONIC', amount: total }]);
+                      }}
+                      className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-500 shadow-md ${paymentLines.length === 1 && paymentLines[0].method === 'ELECTRONIC'
+                          ? 'text-white bg-indigo-500 border border-indigo-600 hover:bg-indigo-600 shadow-indigo-500/20'
+                          : 'text-indigo-600 bg-indigo-50 border border-indigo-100 hover:bg-indigo-100 hover:border-indigo-200 shadow-indigo-500/5'
+                        }`}
+                    >
+                      VISA
                     </button>
-                    <button onClick={addPaymentLine} className="px-5 py-2.5 rounded-xl text-[10px] font-black text-slate-600 uppercase tracking-widest bg-white/40 border border-white/60 hover:bg-white transition-all duration-500">
-                      +
+                    <button
+                      onClick={addPaymentLine}
+                      className="px-5 py-2.5 rounded-xl text-[10px] font-black text-slate-600 uppercase tracking-widest bg-white/40 border border-white/60 hover:bg-white transition-all duration-500"
+                    >
+                      {t('pos.split', 'Split')} +
                     </button>
                   </div>
                 </div>
@@ -718,7 +738,7 @@ export const PosPage = () => {
                         onChange={(e) => updatePaymentLine(idx, 'method', e.target.value)}
                       >
                         <option value="CASH">{t('pos.cash')}</option>
-                        <option value="ELECTRONIC">{t('pos.electronic')}</option>
+                        <option value="ELECTRONIC">VISA</option>
                       </select>
                       <input
                         type="number"
@@ -867,8 +887,20 @@ export const PosPage = () => {
         title={dialog.title}
         description={dialog.description}
         type={dialog.type}
-        onClose={() => setDialog(p => ({ ...p, isOpen: false }))}
-        onConfirm={dialog.onConfirm}
+        onClose={() => {
+          setDialog(p => ({ ...p, isOpen: false }));
+          if (lastClosedInvoice) setLastClosedInvoice(null);
+        }}
+        onConfirm={() => {
+          dialog.onConfirm();
+          if (lastClosedInvoice) {
+            handlePrint();
+            setDialog(p => ({ ...p, isOpen: false }));
+            setLastClosedInvoice(null);
+          }
+        }}
+        confirmText={lastClosedInvoice ? t('pos.print_receipt', 'Print Receipt') : undefined}
+        cancelText={lastClosedInvoice ? t('common.close', 'Close') : undefined}
       />
 
       {/* 6. Printable Receipt Template (Hidden from screen) */}
@@ -937,8 +969,19 @@ export const PosPage = () => {
             )}
             <div className="flex justify-between text-base font-black border-t-2 border-slate-900 pt-2 uppercase">
               <span>{t('common.total')}</span>
-              <span className="tabular-nums">{formatCurrency(total)}</span>
+              <span className="tabular-nums">{formatCurrency(lastClosedInvoice ? lastClosedInvoice.total : total)}</span>
             </div>
+          </div>
+
+          {/* Payment Breakdown */}
+          <div className="border-t border-slate-100 pt-4 space-y-2">
+            <div className="text-[10px] font-black uppercase tracking-widest pb-1">{t('pos.payment_methods')}</div>
+            {(lastClosedInvoice ? lastClosedInvoice.payments : paymentLines).map((p: any, i: number) => (
+              <div key={i} className="flex justify-between text-xs font-bold">
+                <span>{p.method === 'ELECTRONIC' ? 'VISA' : t('pos.cash')}</span>
+                <span className="tabular-nums">{formatCurrency(p.amount)}</span>
+              </div>
+            ))}
           </div>
 
           {/* Footer */}

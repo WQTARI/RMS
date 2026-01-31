@@ -123,14 +123,8 @@ export const OrderHistoryPage = () => {
                             return (
                                 <div
                                     key={order.id}
-                                    className="group relative glass rounded-[3rem] border-white/60 p-10 shadow-2xl shadow-indigo-500/5 hover:-translate-y-3 transition-all duration-700 overflow-hidden"
+                                    className="group relative glass rounded-[2rem] border-white/60 p-10 shadow-2xl shadow-indigo-500/5 hover:-translate-y-3 transition-all duration-700 overflow-hidden"
                                 >
-                                    {/* Abstract Record Background */}
-                                    <div className="absolute -top-10 -right-10 size-48 bg-slate-900/5 rounded-full blur-[80px] pointer-events-none" />
-                                    <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity rotate-12">
-                                        <Hash className="size-32" />
-                                    </div>
-
                                     <div className="relative z-10 h-full flex flex-col">
                                         <div className="flex justify-between items-start mb-10">
                                             <div className="space-y-2">
@@ -138,8 +132,13 @@ export const OrderHistoryPage = () => {
                                                     <Hash className="size-3" />
                                                     <span className="text-[10px] font-black uppercase tracking-widest">{order.id}</span>
                                                 </div>
-                                                <h3 className="text-3xl font-black text-slate-900 tracking-tighter uppercase leading-none truncate max-w-[200px]">
-                                                    {order.customer_name || t('common.walking_guest')}
+                                                <h3 className="text-3xl font-black text-slate-900 tracking-tighter uppercase leading-none">
+                                                    {(() => {
+                                                        const name = order.customer_name || order.reservation?.customer_name || order.invoice?.customer_name
+                                                        return (!name || name === 'WALKING_GUEST')
+                                                            ? t('reports.walking_guest')
+                                                            : name
+                                                    })()}
                                                 </h3>
                                             </div>
                                             <div className={`px-5 py-2.5 rounded-2xl text-[10px] font-black text-white uppercase tracking-[0.2em] shadow-xl ${statusColor}`}>
@@ -148,12 +147,20 @@ export const OrderHistoryPage = () => {
                                         </div>
 
                                         <div className="flex flex-wrap items-center gap-6 mb-10 pb-6 border-b border-white/80">
+                                            {order.table && (
+                                                <div className="flex items-center gap-2.5 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                                    <div className="size-7 rounded-lg bg-indigo-50 text-indigo-500 flex items-center justify-center"><Receipt className="size-4" /></div>
+                                                    {order.table.name}
+                                                </div>
+                                            )}
+                                            {order.reservation && (
+                                                <div className="flex items-center gap-2.5 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                                    <div className="size-7 rounded-lg bg-amber-50 text-amber-500 flex items-center justify-center"><Clock className="size-4" /></div>
+                                                    {new Date(order.reservation.date_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                </div>
+                                            )}
                                             <div className="flex items-center gap-2.5 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                                                <div className="size-7 rounded-lg bg-indigo-50 text-indigo-500 flex items-center justify-center"><Receipt className="size-4" /></div>
-                                                {t('common.area')}: {order.table?.name || '---'}
-                                            </div>
-                                            <div className="flex items-center gap-2.5 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                                                <div className="size-7 rounded-lg bg-purple-50 text-purple-500 flex items-center justify-center"><Clock className="size-4" /></div>
+                                                <div className="size-7 rounded-lg bg-purple-50 text-purple-500 flex items-center justify-center"><Calendar className="size-4" /></div>
                                                 {new Date(order.created_at).toLocaleDateString()}
                                             </div>
                                         </div>
@@ -178,13 +185,13 @@ export const OrderHistoryPage = () => {
 
                                         <div className="mt-auto pt-8 border-t border-white/80 flex justify-between items-end">
                                             <div className="space-y-1">
-                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] leading-none">{t('common.grand_total')}</p>
+                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] leading-none">{t('reports.grand_total')}</p>
                                                 <div className="text-4xl font-black text-slate-900 tracking-tighter tabular-nums leading-none">
                                                     {formatCurrency(total)}
                                                 </div>
                                             </div>
                                             <div className="text-[9px] font-black text-slate-300 uppercase tracking-widest tabular-nums bg-white/40 px-3 py-1.5 rounded-xl border border-white/60">
-                                                {t('common.paid_at')} {new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                {t('reports.paid_at')} {new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                             </div>
                                         </div>
                                     </div>
@@ -228,6 +235,6 @@ export const OrderHistoryPage = () => {
                     </div>
                 )}
             </div>
-        </div>
+        </div >
     )
 }

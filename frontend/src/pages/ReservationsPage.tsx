@@ -18,8 +18,8 @@ type FilterStatus = 'TODAY' | 'UPCOMING' | 'COMPLETED' | 'CANCELLED' | 'ALL'
 export const ReservationsPage = () => {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
-  const { hasRole, hasAnyRole } = useAuth()
-  const canManageReservations = hasRole('admin') || hasAnyRole(['receptionist'])
+  const { hasPermission } = useAuth()
+  const canManageReservations = hasPermission('manage_reservations')
 
   const [filter, setFilter] = useState<FilterStatus>('TODAY')
   const [searchParams] = useSearchParams()
@@ -97,6 +97,11 @@ export const ReservationsPage = () => {
   const statusMutation = useMutation({
     mutationFn: ({ id, status }: { id: number; status: string }) => updateReservation(id, { status }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['reservations'] }),
+    onError: (err: any) => {
+      const data = err.response?.data
+      const msg = data?.message || (data?.errors ? Object.values(data.errors).flat().join(' ') : t('common.update_failed'))
+      setDialog({ isOpen: true, title: t('common.update_failed'), description: msg, type: 'danger', onConfirm: () => { } })
+    }
   })
 
   const convertMutation = useMutation({
@@ -187,8 +192,28 @@ export const ReservationsPage = () => {
                     <input type="number" className="glass-input" value={formState.number_of_guests} onChange={e => setFormState(p => ({ ...p, number_of_guests: Number(e.target.value) }))} required />
                   </div>
                   <div className="space-y-2">
-                    <label className="field-label">{t('common.minutes')}</label>
-                    <input type="number" className="glass-input" value={formState.duration_minutes} onChange={e => setFormState(p => ({ ...p, duration_minutes: Number(e.target.value) }))} />
+                    <div className="flex justify-between items-center">
+                      <label className="field-label">{t('common.minutes')}</label>
+                      <label className="flex items-center gap-2 cursor-pointer group">
+                        <input
+                          type="checkbox"
+                          className="size-4 rounded border-slate-300 text-primary focus:ring-primary/20"
+                          checked={formState.duration_minutes === 0}
+                          onChange={e => setFormState(p => ({ ...p, duration_minutes: e.target.checked ? 0 : 90 }))}
+                        />
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest group-hover:text-primary transition-colors">
+                          {t('common.null')}
+                        </span>
+                      </label>
+                    </div>
+                    <input
+                      type="number"
+                      className="glass-input disabled:opacity-50 disabled:bg-slate-50/50"
+                      disabled={formState.duration_minutes === 0}
+                      value={formState.duration_minutes === 0 ? '' : formState.duration_minutes}
+                      onChange={e => setFormState(p => ({ ...p, duration_minutes: Number(e.target.value) }))}
+                      placeholder={formState.duration_minutes === 0 ? t('common.null') : '90'}
+                    />
                   </div>
                 </div>
 
@@ -272,6 +297,11 @@ export const ReservationsPage = () => {
                         <div className="bg-primary/10 text-primary px-4 py-2 rounded-xl text-lg font-black tracking-tight flex items-center gap-2">
                           <Clock className="size-4" />
                           {formatLiteralTime(res.date_time)}
+                          {res.duration_minutes === 0 && (
+                            <span className="text-[9px] bg-slate-900 text-white px-2 py-0.5 rounded-md">
+                              {t('common.null')}
+                            </span>
+                          )}
                         </div>
                       </div>
                       <h3 className="text-3xl font-black text-slate-900 truncate tracking-tighter">{res.customer_name}</h3>
@@ -313,7 +343,18 @@ export const ReservationsPage = () => {
                       <button onClick={() => setConvertItem(res)} className="px-6 py-3 rounded-xl bg-emerald-500/10 text-emerald-600 text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500 hover:text-white transition-all duration-500 shadow-lg shadow-emerald-500/5">{t('common.seat_guest')}</button>
                     )}
                     {res.status === 'SEATED' && (
-                      <button onClick={() => statusMutation.mutate({ id: res.id, status: 'COMPLETED' })} className="px-6 py-3 rounded-xl bg-slate-100 text-slate-600 text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 hover:text-white transition-all duration-500">{t('common.end_session')}</button>
+                      <button
+                        onClick={() => setDialog({
+                          isOpen: true,
+                          title: t('common.end_session'),
+                          description: t('common.end_session_confirm'),
+                          type: 'warning',
+                          onConfirm: () => statusMutation.mutate({ id: res.id, status: 'COMPLETED' })
+                        })}
+                        className="px-6 py-3 rounded-xl bg-slate-100 text-slate-600 text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 hover:text-white transition-all duration-500"
+                      >
+                        {t('common.end_session')}
+                      </button>
                     )}
 
                     <button

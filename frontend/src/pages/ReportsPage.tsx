@@ -44,7 +44,10 @@ export const ReportsPage = () => {
 
   // Summaries
   const totalRevenue = trend.reduce((acc, curr) => acc + curr.total, 0)
-  const avgDaily = days > 0 ? totalRevenue / days : 0
+  // Calculate Average Daily using ACTIVE days (days with sales) instead of the selected period
+  // This avoids artificially low averages for new restaurants with only a few days of data
+  const activeDays = trend.length
+  const avgDaily = activeDays > 0 ? totalRevenue / activeDays : 0
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {

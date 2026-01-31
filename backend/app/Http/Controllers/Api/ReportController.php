@@ -114,24 +114,63 @@ class ReportController extends Controller
         $rows = Cache::remember(
             'reports:table-performance',
             now()->addMinutes(5),
-            fn() => RestaurantTable::withCount([
-                'orders' => function ($q) {
-                    $q->whereHas('invoice', fn($iq) => $iq->where('status', \App\Enums\InvoiceStatus::Paid));
-                }
-            ])
+            function () {
+                // 1. Fetch performance for physical tables
+                $tables = RestaurantTable::withCount([
+                    'orders' => function ($q) {
+                        $q->whereHas('invoice', fn($iq) => $iq->where('status', \App\Enums\InvoiceStatus::Paid));
+                    },
+                    'invoices' => function ($q) {
+                        $q->where('status', \App\Enums\InvoiceStatus::Paid);
+                    }
+                ])
                 ->withSum([
                     'invoices' => function ($q) {
                         $q->where('status', \App\Enums\InvoiceStatus::Paid);
                     }
                 ], 'total')
-                ->orderByDesc('invoices_sum_total')
                 ->get()
                 ->map(function ($table) {
-                    $table->avg_order_value = $table->orders_count > 0
-                        ? round($table->invoices_sum_total / $table->orders_count, 2)
+                    $table->avg_order_value = $table->invoices_count > 0
+                        ? round($table->invoices_sum_total / $table->invoices_count, 2)
                         : 0;
                     return $table;
-                })
+                });
+
+                // 2. Calculate Takeaway performance (No Table ID)
+                $takeawayInvoices = Invoice::where('status', \App\Enums\InvoiceStatus::Paid)
+                    ->whereNull('table_id')
+                    ->get();
+
+                $takeawayTotalRevenue = $takeawayInvoices->sum('total');
+                $takeawayInvoiceCount = $takeawayInvoices->count();
+                
+                // Count orders associated with these takeaway invoices
+                $takeawayOrderCount = DB::table('orders')
+                    ->join('invoices', 'orders.invoice_id', '=', 'invoices.id')
+                    ->whereIn('invoices.id', $takeawayInvoices->pluck('id'))
+                    ->count();
+
+                // Create a virtual "Takeaway" table object
+                $takeawayStats = new RestaurantTable([
+                    'name' => 'Takeaway',
+                    'capacity' => 0,
+                    'status' => \App\Enums\TableStatus::Available,
+                ]);
+                // Manually set attributes that normally come from relations/aggregates
+                $takeawayStats->id = 999999; // Virtual ID for key
+                $takeawayStats->orders_count = $takeawayOrderCount;
+                $takeawayStats->invoices_count = $takeawayInvoiceCount;
+                $takeawayStats->invoices_sum_total = $takeawayTotalRevenue;
+                $takeawayStats->avg_order_value = $takeawayInvoiceCount > 0 
+                    ? round($takeawayTotalRevenue / $takeawayInvoiceCount, 2) 
+                    : 0;
+
+                // 3. Merge and Sort
+                $tables->push($takeawayStats);
+                
+                return $tables->sortByDesc('invoices_sum_total')->values();
+            }
         );
 
         return response()->json($rows);

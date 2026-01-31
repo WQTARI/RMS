@@ -31,7 +31,8 @@ class TableStatusService
 
         $hasCurrentReservation = $activeReservations->contains(function ($reservation) use ($now) {
             $start = Carbon::parse($reservation->date_time);
-            $end = $start->copy()->addMinutes($reservation->duration_minutes);
+            $duration = $reservation->duration_minutes > 0 ? $reservation->duration_minutes : 180;
+            $end = $start->copy()->addMinutes($duration);
             return $start->lessThanOrEqualTo($now) && $now->lessThan($end);
         });
 

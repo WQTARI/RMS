@@ -109,7 +109,7 @@ class InvoiceService
                 app(ReportCacheService::class)->clearTablePerformance();
             });
 
-            return $invoice->refresh();
+            return $invoice->refresh()->load(['payments', 'orders.items.menuItem', 'table']);
         });
     }
 }

@@ -51,7 +51,7 @@ class ReservationController extends Controller
             'customer_name' => ['required', 'string', 'max:255'],
             'phone' => ['required', 'string', 'max:50'],
             'date_time' => ['required', 'date', 'after_or_equal:today -1 month'], // Allow past recording but Service will handle drift
-            'duration_minutes' => ['nullable', 'integer', 'min:15'],
+            'duration_minutes' => ['nullable', 'integer', 'min:0'],
             'number_of_guests' => ['required', 'integer', 'min:1'],
             'table_id' => ['required', 'exists:restaurant_tables,id'],
             'notes' => ['nullable', 'string'],
@@ -96,7 +96,7 @@ class ReservationController extends Controller
             'customer_name' => ['sometimes', 'string', 'max:255'],
             'phone' => ['sometimes', 'string', 'max:50'],
             'date_time' => ['sometimes', 'date', 'after_or_equal:now'],
-            'duration_minutes' => ['nullable', 'integer', 'min:15'],
+            'duration_minutes' => ['nullable', 'integer', 'min:0'],
             'number_of_guests' => ['sometimes', 'integer', 'min:1'],
             'table_id' => ['sometimes', 'exists:restaurant_tables,id'],
             'status' => ['nullable', Rule::enum(ReservationStatus::class)],
@@ -117,6 +117,24 @@ class ReservationController extends Controller
                 );
             }
 
+            if (isset($data['status']) && $data['status'] === ReservationStatus::Completed->value) {
+                // Prevent completing if there is an open invoice
+                $hasOpenInvoice = \App\Models\Invoice::where('table_id', $reservation->table_id)
+                    ->where('status', \App\Enums\InvoiceStatus::Open)
+                    ->exists();
+
+                if ($hasOpenInvoice) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'status' => 'لا يمكن إنهاء الجلسة. الفاتورة لا تزال مفتوحة لهذا العميل.',
+                    ]);
+                }
+
+                // Calculate duration for undefined reservations
+                if ($reservation->duration_minutes === 0) {
+                    $data['duration_minutes'] = max(5, \Carbon\Carbon::parse($reservation->date_time)->diffInMinutes(now()));
+                }
+            }
+
             $reservation->update($data);
         });
         app(ReportCacheService::class)->clearReservations(Carbon::parse($reservation->date_time));
@@ -133,6 +151,18 @@ class ReservationController extends Controller
         $this->authorize('delete', $reservation);
 
         $reservationDate = Carbon::parse($reservation->date_time);
+        
+        // Prevent deleting if there is an open invoice
+        $hasOpenInvoice = \App\Models\Invoice::where('table_id', $reservation->table_id)
+            ->where('status', \App\Enums\InvoiceStatus::Open)
+            ->exists();
+
+        if ($hasOpenInvoice) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'id' => 'لا يمكن حذف الحجز. الفاتورة لا تزال مفتوحة لهذه الطاولة.',
+            ]);
+        }
+
         $reservation->delete();
 
         app(ReportCacheService::class)->clearReservations($reservationDate);

@@ -25,6 +25,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'manage_menu' => 'Manage menu items and categories.',
             'manage_sections' => 'Manage table and prep sections.',
             'manage_users' => 'Manage system users and roles.',
+            'serve_items' => 'Mark items as served (Waiter action).',
         ];
 
         $permissionModels = [];
@@ -48,6 +49,7 @@ class RolesAndPermissionsSeeder extends Seeder
                 'manage_menu',
                 'manage_sections',
                 'manage_users',
+                'serve_items',
             ],
             'Cashier' => [
                 'view_only',
@@ -73,8 +75,7 @@ class RolesAndPermissionsSeeder extends Seeder
             ],
             'Waiters' => [
                 'view_only',
-                'update_item_status',
-                'create_order',
+                'serve_items',
             ],
         ];
 

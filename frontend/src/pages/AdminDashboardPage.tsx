@@ -24,6 +24,13 @@ import { Plus, Trash2, Search, RefreshCw, Layers, Users, Utensils, ClipboardList
 
 type AdminTab = 'menu' | 'tables' | 'users' | 'sections' | 'audits' | 'restaurant'
 
+const getCategoryForSection = (name: string) => {
+  const n = name.toUpperCase().trim()
+  if (n.includes('DESSERT')) return 'DESSERT'
+  if (n.includes('DRINK') || n.includes('BAR')) return 'DRINK'
+  return 'FOOD'
+}
+
 export const AdminDashboardPage = () => {
   const { t } = useTranslation()
   const [activeTab, setActiveTab] = useState<AdminTab>('menu')
@@ -138,17 +145,23 @@ const MenuModule = ({ openConfirm, showError }: { openConfirm: (t: string, d: st
   const { t } = useTranslation()
   const queryClient = useQueryClient()
   const [categoryFilter, setCategoryFilter] = useState('ALL')
-  const { data: items = [], isLoading } = useQuery({ queryKey: ['menu-items'], queryFn: () => fetchMenuItems() })
+  const { data: items = [], isLoading, isError } = useQuery({ queryKey: ['menu-items'], queryFn: () => fetchMenuItems() })
   const { data: prepSections = [] } = useQuery({ queryKey: ['prep-sections'], queryFn: fetchPrepSections })
 
   const [form, setForm] = useState<Partial<MenuItem>>({
     name: '', price: 0, category: 'FOOD', prep_section_id: undefined, prep_time_minutes: 15, is_active: true, image_url: ''
   })
+  const [imageFile, setImageFile] = useState<File | null>(null)
 
-  // Automatically select the first prep section when they load
+  // Automatically set initial category and prep section mapping
   useEffect(() => {
     if (prepSections.length > 0 && form.prep_section_id === undefined) {
-      setForm(prev => ({ ...prev, prep_section_id: prepSections[0].id }))
+      const defaultSection = prepSections.find(s => s.name.toUpperCase() === 'KITCHEN') || prepSections[0]
+      setForm(prev => ({
+        ...prev,
+        prep_section_id: defaultSection.id,
+        category: getCategoryForSection(defaultSection.name) as any
+      }))
     }
   }, [prepSections])
 
@@ -156,15 +169,14 @@ const MenuModule = ({ openConfirm, showError }: { openConfirm: (t: string, d: st
     mutationFn: createMenuItem,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['menu-items'] });
-      setForm({
+      // Reset form but keep the last category/section to make it easier to add multiple items
+      setForm(prev => ({
+        ...prev,
         name: '',
         price: 0,
-        category: 'FOOD',
-        prep_section_id: prepSections[0]?.id,
-        prep_time_minutes: 15,
-        is_active: true,
         image_url: ''
-      })
+      }))
+      setImageFile(null)
     },
     onError: (error: any) => showError(error?.response?.data?.message || t('common.create_failed'))
   })
@@ -245,32 +257,84 @@ const MenuModule = ({ openConfirm, showError }: { openConfirm: (t: string, d: st
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">{t('common.category')}</label>
-              <select className="w-full px-6 py-5 bg-white border border-white/80 rounded-2xl text-xs font-black uppercase tracking-widest focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all shadow-inner" value={form.category} onChange={e => setForm({ ...form, category: e.target.value as any })}>
-                <option value="FOOD">{t('common.food')}</option>
-                <option value="DESSERT">{t('common.dessert')}</option>
-                <option value="DRINK">{t('common.drink')}</option>
-              </select>
-            </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Prep Section</label>
-              <select className="w-full px-6 py-5 bg-white border border-white/80 rounded-2xl text-xs font-black uppercase tracking-widest focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all shadow-inner" value={form.prep_section_id || ''} onChange={e => setForm({ ...form, prep_section_id: Number(e.target.value) })}>
-                {!form.prep_section_id && <option value="">Select Section...</option>}
-                {prepSections?.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-              </select>
-            </div>
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">{t('common.category')} & {t('admin.prep_sections')}</label>
+            <select
+              className="w-full px-6 py-5 bg-white border border-white/80 rounded-2xl text-xs font-black uppercase tracking-widest focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all shadow-inner"
+              value={`${form.category}:${form.prep_section_id}`}
+              onChange={e => {
+                const [_, sidRaw] = e.target.value.split(':');
+                const sid = Number(sidRaw);
+                const section = prepSections.find(s => s.id === sid);
+                const category = section ? getCategoryForSection(section.name) : 'FOOD';
+
+                console.log('Selection Changed:', { value: e.target.value, sectionName: section?.name, mapping: category });
+
+                setForm(prev => ({ ...prev, category: category as any, prep_section_id: sid }));
+              }}
+            >
+              {prepSections.map(s => {
+                const category = getCategoryForSection(s.name);
+                return (
+                  <option key={s.id} value={`${category}:${s.id}`}>
+                    {s.name}
+                  </option>
+                );
+              })}
+            </select>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Image URL (Optional)</label>
-            <input className="w-full px-6 py-5 bg-white/60 border border-white/80 rounded-2xl text-xs font-bold focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all shadow-inner" placeholder="https://..." value={form.image_url || ''} onChange={e => setForm({ ...form, image_url: e.target.value })} />
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Image (URL or File)</label>
+              <div className="flex gap-2">
+                <input
+                  className="flex-1 px-6 py-5 bg-white/60 border border-white/80 rounded-2xl text-xs font-bold focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all shadow-inner"
+                  placeholder="https://..."
+                  value={form.image_url || ''}
+                  onChange={e => setForm({ ...form, image_url: e.target.value })}
+                />
+                <label className="flex items-center justify-center px-4 py-3 bg-white border border-white/80 rounded-2xl cursor-pointer hover:bg-slate-50 transition-all shadow-sm">
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={e => {
+                      const file = e.target.files?.[0]
+                      if (file) setImageFile(file)
+                    }}
+                  />
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+                    {imageFile ? 'File Selected' : 'Choose File'}
+                  </span>
+                </label>
+              </div>
+              {imageFile && <p className="text-[10px] text-indigo-500 font-bold ml-1">Selected: {imageFile.name}</p>}
+            </div>
           </div>
 
           <button
             type="submit"
             disabled={!form.prep_section_id || createMutation.isPending}
+            onClick={(e) => {
+              e.preventDefault();
+              if (!form.prep_section_id) return;
+
+              if (imageFile) {
+                const formData = new FormData();
+                formData.append('name', form.name!);
+                formData.append('price', String(form.price));
+                formData.append('category', form.category!);
+                formData.append('prep_section_id', String(form.prep_section_id));
+                formData.append('prep_time_minutes', String(form.prep_time_minutes));
+                formData.append('is_active', '1');
+                if (form.image_url) formData.append('image_url', form.image_url);
+                formData.append('image', imageFile);
+                createMutation.mutate(formData);
+              } else {
+                createMutation.mutate(form as any);
+              }
+            }}
             className="group w-full flex items-center justify-center gap-4 py-6 bg-slate-900 text-white rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] shadow-2xl hover:bg-indigo-600 hover:scale-105 active:scale-95 transition-all duration-500 disabled:opacity-30 disabled:hover:scale-100"
           >
             {createMutation.isPending ? <RefreshCw className="size-5 animate-spin" /> : <Plus size={20} />}
@@ -302,7 +366,21 @@ const MenuModule = ({ openConfirm, showError }: { openConfirm: (t: string, d: st
             Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="aspect-square bg-white/20 rounded-[2.5rem] animate-pulse border border-white/40" />
             ))
-          ) : (filtered || []).map(item => (
+          ) : isError ? (
+            <div className="col-span-full p-12 text-center glass rounded-[3rem] border-rose-200 bg-rose-50/50">
+              <p className="text-sm font-black text-rose-600 uppercase tracking-widest leading-none mb-2">Failed to load content</p>
+              <p className="text-[10px] text-rose-400 font-bold uppercase tracking-widest">Please check your connection or permissions</p>
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="col-span-full p-20 text-center glass rounded-[3rem] border-dashed border-2 bg-white/10 shrink-0">
+              <div className="size-20 bg-white shadow-xl shadow-slate-200/50 rounded-[2rem] flex items-center justify-center text-4xl mx-auto opacity-40 mb-6">
+                🍽️
+              </div>
+              <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.4em]">
+                {t('pos.no_items_in_category')}
+              </p>
+            </div>
+          ) : filtered.map(item => (
             <div key={item.id} className="group relative glass rounded-[2.5rem] p-6 border-white/80 hover:bg-white/80 transition-all duration-500 shadow-xl shadow-indigo-500/5 overflow-hidden">
               <div className="flex gap-6 relative z-10">
                 <div className="size-24 rounded-2xl bg-white shadow-inner overflow-hidden shrink-0 border border-white/80">

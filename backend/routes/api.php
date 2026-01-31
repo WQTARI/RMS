@@ -14,8 +14,13 @@ use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\AuditController;
 use App\Http\Controllers\Api\SettingController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request; // Added for the /user route
 
 Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:login');
+
+Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+    return $request->user();
+});
 
 Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::get('/auth/me', [AuthController::class, 'me']);
@@ -75,6 +80,10 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
 
     Route::middleware('permission:update_item_status')->group(function () {
         Route::patch('/order-items/{id}/status', [OrderController::class, 'updateItemStatus']);
+    });
+
+    Route::middleware('permission:serve_items')->group(function () {
+        Route::post('/order-items/{id}/serve', [OrderController::class, 'serveItem']);
     });
 
     Route::middleware('permission:close_invoice')->group(function () {

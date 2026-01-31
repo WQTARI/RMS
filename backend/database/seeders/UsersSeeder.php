@@ -44,6 +44,17 @@ class UsersSeeder extends Seeder
                 'role' => 'Desserts',
                 'prep_section' => 'Desserts',
             ],
+            [
+                'name' => 'Drinks User',
+                'email' => 'drinks@rms.test',
+                'role' => 'Drinks',
+                'prep_section' => 'Drinks',
+            ],
+            [
+                'name' => 'Waiter User',
+                'email' => 'waiter@rms.test',
+                'role' => 'Waiters',
+            ],
         ];
 
         foreach ($users as $userData) {

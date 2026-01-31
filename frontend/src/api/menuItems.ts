@@ -6,17 +6,16 @@ export const fetchMenuItems = async (params?: { active?: boolean }) => {
   return data
 }
 
-export const createMenuItem = async (payload: Partial<MenuItem>) => {
+export const createMenuItem = async (payload: Partial<MenuItem> | FormData) => {
   const { data } = await apiClient.post<MenuItem>('/menu-items', payload)
   return data
 }
 
-export const updateMenuItem = async (id: number, payload: Partial<MenuItem>) => {
-  const { data } = await apiClient.put<MenuItem>(`/menu-items/${id}`, payload)
+export const updateMenuItem = async ({ id, data: payload }: { id: number; data: Partial<MenuItem> | FormData }) => {
+  const { data } = await apiClient.post<MenuItem>(`/menu-items/${id}?_method=PUT`, payload)
   return data
 }
 
 export const deleteMenuItem = async (id: number) => {
-  const { data } = await apiClient.delete(`/menu-items/${id}`)
-  return data
+  await apiClient.delete(`/menu-items/${id}`)
 }

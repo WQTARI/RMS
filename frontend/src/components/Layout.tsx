@@ -117,6 +117,7 @@ export const Layout = () => {
     const navItems = useMemo(() => [
         {
             group: 'OPERATIONS', items: [
+                { path: '/waiter', label: t('nav.waiter'), icon: <UtensilsCrossed size={20} />, permission: 'serve_items' },
                 { path: '/floor-plan', label: t('nav.floor_plan'), icon: <Map size={20} />, permission: 'manage_reservations' },
                 { path: '/reservations', label: t('nav.bookings'), icon: <ClipboardList size={20} />, permission: 'manage_reservations' },
                 { path: '/pos', label: t('nav.pos'), icon: <UtensilsCrossed size={20} />, permission: 'create_order' },

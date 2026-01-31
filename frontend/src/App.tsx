@@ -9,6 +9,7 @@ import { SectionOrdersPage } from './pages/SectionOrdersPage'
 import { AdminDashboardPage } from './pages/AdminDashboardPage'
 import { ReportsPage } from './pages/ReportsPage'
 import { OrderHistoryPage } from './pages/OrderHistoryPage'
+import WaiterPage from './pages/WaiterPage'
 import { useAuth } from './context/AuthContext'
 import { AccessDenied } from './components/AccessDenied'
 import { Toaster } from 'react-hot-toast'
@@ -27,6 +28,9 @@ const RequireAuth = ({ children }: { children: React.ReactNode }) => {
 const RoleBasedRedirect = () => {
   const { user, hasPermission } = useAuth()
 
+  if (hasPermission('serve_items')) {
+    return <Navigate to="/waiter" replace />
+  }
   if (hasPermission('manage_settings')) {
     return <FloorPlanPage />
   }
@@ -90,6 +94,14 @@ function App() {
             element={
               <RequirePermission permission="create_order">
                 <PosPage />
+              </RequirePermission>
+            }
+          />
+          <Route
+            path="waiter"
+            element={
+              <RequirePermission permission="serve_items">
+                <WaiterPage />
               </RequirePermission>
             }
           />

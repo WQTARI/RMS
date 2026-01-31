@@ -30,20 +30,27 @@ class MenuItemController extends Controller
      */
     public function store(Request $request)
     {
+        \Illuminate\Support\Facades\Log::info('MenuItem Store Request:', $request->all());
         $this->authorize('manage_settings');
+        
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'price' => ['required', 'numeric', 'min:0'],
             'description' => ['nullable', 'string'],
+            'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
             'image_url' => ['nullable', 'string'],
-            'category' => ['nullable', 'string'], // Will be overwritten
+            'category' => ['required', 'string', Rule::in(['FOOD', 'DESSERT', 'DRINK'])],
             'prep_section_id' => ['required', 'exists:prep_sections,id'],
             'prep_time_minutes' => ['required', 'integer', 'min:1'],
             'is_active' => ['nullable', 'boolean'],
         ]);
 
-        $prepSection = \App\Models\PrepSection::findOrFail($data['prep_section_id']);
-        $data['category'] = strtoupper($prepSection->name);
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('menu-items', 'public');
+            $data['image_url'] = url('storage/' . $path);
+        }
+
+        unset($data['image']); // Remove image file from data array before creating model
 
         $menuItem = MenuItem::create($data);
 
@@ -71,17 +78,20 @@ class MenuItemController extends Controller
             'name' => ['sometimes', 'string', 'max:255'],
             'price' => ['sometimes', 'numeric', 'min:0'],
             'description' => ['nullable', 'string'],
+            'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
             'image_url' => ['nullable', 'string'],
-            'category' => ['nullable', 'string'],
+            'category' => ['sometimes', 'string', Rule::in(['FOOD', 'DESSERT', 'DRINK'])],
             'prep_section_id' => ['sometimes', 'exists:prep_sections,id'],
             'prep_time_minutes' => ['sometimes', 'integer', 'min:1'],
             'is_active' => ['nullable', 'boolean'],
         ]);
 
-        if (isset($data['prep_section_id'])) {
-            $prepSection = \App\Models\PrepSection::findOrFail($data['prep_section_id']);
-            $data['category'] = strtoupper($prepSection->name);
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('menu-items', 'public');
+            $data['image_url'] = url('storage/' . $path);
         }
+
+        unset($data['image']);
 
         $menuItem->update($data);
 

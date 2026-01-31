@@ -33,7 +33,7 @@ class OrderController extends Controller
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ]);
 
-        $query = Order::with(['items.menuItem', 'table.section', 'reservation'])
+        $query = Order::with(['items.menuItem', 'table.section', 'reservation', 'invoice'])
             ->orderByDesc('created_at');
 
         if ($request->filled('search')) {
@@ -221,5 +221,24 @@ class OrderController extends Controller
         $order = app(OrderService::class)->cancelOrder($order, auth()->id());
 
         return response()->json($order->load(['items.menuItem', 'table.section']));
+    }
+
+    public function serveItem(string $id)
+    {
+        $orderItem = OrderItem::with('order.table')->findOrFail($id);
+        
+        // Check permission
+        if (!auth()->user()->can('serve_items')) {
+            abort(403, 'Not authorized to serve items.');
+        }
+
+        // Only allow serving items that are READY
+        if ($orderItem->status !== OrderItemStatus::Ready) {
+            return response()->json(['message' => 'Item must be READY to be served.'], 400);
+        }
+
+        $orderItem = app(OrderService::class)->updateItemStatus($orderItem, OrderItemStatus::Served);
+
+        return response()->json($orderItem->load('menuItem', 'order.table'));
     }
 }

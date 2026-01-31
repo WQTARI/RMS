@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Save, Upload, Store, Loader2, CheckCircle2 } from 'lucide-react'
-import axios from 'axios'
 import { toast } from 'react-hot-toast'
+import * as settingsApi from '../../api/settings'
 
 export const RestaurantSettingsPage = () => {
     const [settings, setSettings] = useState({
@@ -13,18 +13,15 @@ export const RestaurantSettingsPage = () => {
     const [isUploading, setIsUploading] = useState(false)
 
     useEffect(() => {
-        fetchSettings()
+        loadSettings()
     }, [])
 
-    const fetchSettings = async () => {
+    const loadSettings = async () => {
         try {
-            const token = localStorage.getItem('token')
-            const response = await axios.get('/api/settings', {
-                headers: { Authorization: `Bearer ${token}` }
-            })
-            setSettings(prev => ({ ...prev, ...response.data }))
+            const data = await settingsApi.fetchSettings()
+            setSettings(prev => ({ ...prev, ...data }))
         } catch (error) {
-            console.error('Failed to fetch settings:', error)
+            console.error('Failed to load settings:', error)
             toast.error('Failed to load settings')
         } finally {
             setIsLoading(false)
@@ -35,14 +32,12 @@ export const RestaurantSettingsPage = () => {
         e.preventDefault()
         setIsSaving(true)
         try {
-            const token = localStorage.getItem('token')
-            await axios.put('/api/settings', { settings }, {
-                headers: { Authorization: `Bearer ${token}` }
-            })
+            await settingsApi.updateSettings(settings)
             toast.success('Settings saved successfully')
-        } catch (error) {
+        } catch (error: any) {
             console.error('Failed to save settings:', error)
-            toast.error('Failed to save settings')
+            const message = error.response?.data?.message || 'Failed to save settings'
+            toast.error(message)
         } finally {
             setIsSaving(false)
         }
@@ -53,22 +48,14 @@ export const RestaurantSettingsPage = () => {
         if (!file) return
 
         setIsUploading(true)
-        const formData = new FormData()
-        formData.append('logo', file)
-
         try {
-            const token = localStorage.getItem('token')
-            const response = await axios.post('/api/settings/upload-logo', formData, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'multipart/form-data'
-                }
-            })
-            setSettings(prev => ({ ...prev, restaurant_logo: response.data.url }))
+            const response = await settingsApi.uploadLogo(file)
+            setSettings(prev => ({ ...prev, restaurant_logo: response.url }))
             toast.success('Logo uploaded successfully')
-        } catch (error) {
+        } catch (error: any) {
             console.error('Failed to upload logo:', error)
-            toast.error('Failed to upload logo')
+            const message = error.response?.data?.message || 'Failed to upload logo'
+            toast.error(message)
         } finally {
             setIsUploading(false)
         }
