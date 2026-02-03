@@ -101,14 +101,16 @@ export default function WaiterPage() {
                             >
                                 {/* Prep Section Badge */}
                                 <div className="absolute top-6 right-6 px-4 py-2 rounded-2xl bg-indigo-500 text-white text-[10px] font-black uppercase tracking-widest shadow-lg">
-                                    {item.prep_section?.name || 'Kitchen'}
+                                    {item.prep_section?.name === 'KITCHEN' ? t('nav.kitchen') :
+                                        item.prep_section?.name === 'DESSERTS' ? t('nav.desserts') :
+                                            item.prep_section?.name || t('nav.kitchen')}
                                 </div>
 
                                 {/* Item Info */}
                                 <div className="space-y-6 mb-8">
                                     <div>
                                         <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
-                                            {t('common.table_name', 'Table')}
+                                            {t('common.table')}
                                         </div>
                                         <div className="text-3xl font-black text-slate-900 uppercase tracking-tighter">
                                             {item.order.table?.name
@@ -120,7 +122,7 @@ export default function WaiterPage() {
 
                                     <div>
                                         <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
-                                            {t('common.item', 'Item')}
+                                            {t('common.item')}
                                         </div>
                                         <div className="text-xl font-black text-slate-700 leading-tight">
                                             {item.quantity}x {item.menu_item?.name}
@@ -134,7 +136,7 @@ export default function WaiterPage() {
                                     disabled={serveMutation.isPending}
                                     className="w-full py-6 rounded-3xl bg-emerald-500 text-white font-black text-lg uppercase tracking-widest shadow-xl shadow-emerald-500/30 hover:bg-emerald-600 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    {serveMutation.isPending ? t('common.loading', 'Loading...') : t('waiter.pickup', 'Pickup')}
+                                    {serveMutation.isPending ? t('common.loading') : t('waiter.pickup')}
                                 </button>
                             </div>
                         ))}

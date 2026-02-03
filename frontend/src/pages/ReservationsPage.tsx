@@ -4,11 +4,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { createReservation, convertReservation, fetchReservations, updateReservation, deleteReservation } from '../api/reservations'
 import { fetchTables } from '../api/tables'
-import { fetchMenuItems } from '../api/menuItems'
 import { PageHeader } from '../components/PageHeader'
 import { Dialog } from '../components/Dialog'
-import { formatCurrency, formatLiteralTime } from '../utils/format'
-import type { Reservation } from '../types'
+import { formatLiteralTime } from '../utils/format'
 import { useAuth } from '../context/AuthContext'
 import { Calendar, Clock, Users } from 'lucide-react'
 import { StatusPill } from '../components/StatusPill'
@@ -25,10 +23,6 @@ export const ReservationsPage = () => {
   const [searchParams] = useSearchParams()
 
   const { data: tables = [] } = useQuery({ queryKey: ['tables'], queryFn: fetchTables })
-  const { data: menuItems = [] } = useQuery({
-    queryKey: ['menu-items'],
-    queryFn: () => fetchMenuItems({ active: true }),
-  })
 
   const {
     data: reservations = [],
@@ -59,11 +53,6 @@ export const ReservationsPage = () => {
     table_id: '',
     notes: '',
   })
-
-  const [convertItem, setConvertItem] = useState<Reservation | null>(null)
-  const [convertLines, setConvertLines] = useState<{ menu_item_id: number; quantity: number }[]>([
-    { menu_item_id: 0, quantity: 1 }
-  ])
 
   useEffect(() => {
     const tableId = searchParams.get('tableId')
@@ -111,7 +100,7 @@ export const ReservationsPage = () => {
       queryClient.invalidateQueries({ queryKey: ['reservations'] })
       queryClient.invalidateQueries({ queryKey: ['orders'] })
       queryClient.invalidateQueries({ queryKey: ['tables'] })
-      setConvertItem(null)
+
       setActionError(null)
     },
     onError: () => setDialog({ isOpen: true, title: t('common.convert_failed'), type: 'danger', onConfirm: () => { } }),
@@ -119,7 +108,15 @@ export const ReservationsPage = () => {
 
   const deleteMutation = useMutation({
     mutationFn: deleteReservation,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['reservations'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['reservations'] })
+      queryClient.invalidateQueries({ queryKey: ['tables'] })
+    },
+    onError: (err: any) => {
+      const data = err.response?.data
+      const msg = data?.message || (data?.errors ? Object.values(data.errors).flat().join(' ') : t('common.delete_failed'))
+      setDialog({ isOpen: true, title: t('common.delete_failed'), description: msg, type: 'danger', onConfirm: () => { } })
+    },
   })
 
   const filteredReservations = useMemo(() => {
@@ -127,20 +124,17 @@ export const ReservationsPage = () => {
       const now = new Date()
       return reservations.filter(r => {
         const resDate = new Date(r.date_time)
-        // If it's a T...Z string, Date() will shift it. 
-        // But for filtering 'upcoming', it's usually fine as long as both are compared in the same reference.
-        // However, to be perfectly safe with 'Upcoming' vs 'Today', we should be careful.
-        return resDate > now && r.status !== 'COMPLETED' && r.status !== 'CANCELLED'
+        return resDate > now && r.status?.toUpperCase() !== 'COMPLETED' && r.status?.toUpperCase() !== 'CANCELLED'
       })
     }
     if (filter === 'TODAY') {
-      return reservations.filter(r => r.status !== 'COMPLETED' && r.status !== 'CANCELLED')
+      return reservations.filter(r => r.status?.toUpperCase() !== 'COMPLETED' && r.status?.toUpperCase() !== 'CANCELLED')
     }
     if (filter === 'COMPLETED') {
-      return reservations.filter(r => r.status === 'COMPLETED')
+      return reservations.filter(r => r.status?.toUpperCase() === 'COMPLETED')
     }
     if (filter === 'CANCELLED') {
-      return reservations.filter(r => r.status === 'CANCELLED')
+      return reservations.filter(r => r.status?.toUpperCase() === 'CANCELLED')
     }
     return reservations
   }, [reservations, filter])
@@ -335,47 +329,55 @@ export const ReservationsPage = () => {
                     )}
                   </div>
 
-                  <div className="flex flex-wrap justify-end gap-3 pt-4 border-t border-white/40">
-                    {res.status === 'CREATED' && (
-                      <button onClick={() => statusMutation.mutate({ id: res.id, status: 'ARRIVED' })} className="px-6 py-3 rounded-xl bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all duration-500 shadow-lg shadow-primary/5">{t('common.arrived')}</button>
-                    )}
-                    {res.status === 'ARRIVED' && (
-                      <button onClick={() => setConvertItem(res)} className="px-6 py-3 rounded-xl bg-emerald-500/10 text-emerald-600 text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500 hover:text-white transition-all duration-500 shadow-lg shadow-emerald-500/5">{t('common.seat_guest')}</button>
-                    )}
-                    {res.status === 'SEATED' && (
+                  {canManageReservations && (
+                    <div className="flex flex-wrap justify-end gap-3 pt-4 border-t border-white/40">
+                      {res.status === 'CREATED' && (
+                        <button onClick={() => statusMutation.mutate({ id: res.id, status: 'ARRIVED' })} className="px-6 py-3 rounded-xl bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all duration-500 shadow-lg shadow-primary/5">{t('common.arrived')}</button>
+                      )}
+                      {res.status === 'ARRIVED' && (
+                        <button
+                          onClick={() => convertMutation.mutate({ id: res.id, items: [] })}
+                          disabled={convertMutation.isPending}
+                          className="px-6 py-3 rounded-xl bg-emerald-500/10 text-emerald-600 text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500 hover:text-white transition-all duration-500 shadow-lg shadow-emerald-500/5 disabled:opacity-50"
+                        >
+                          {convertMutation.isPending ? t('common.loading') : t('common.seat_guest')}
+                        </button>
+                      )}
+                      {res.status === 'SEATED' && (
+                        <button
+                          onClick={() => setDialog({
+                            isOpen: true,
+                            title: t('common.end_session'),
+                            description: t('common.end_session_confirm'),
+                            type: 'warning',
+                            onConfirm: () => statusMutation.mutate({ id: res.id, status: 'COMPLETED' })
+                          })}
+                          className="px-6 py-3 rounded-xl bg-slate-100 text-slate-600 text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 hover:text-white transition-all duration-500"
+                        >
+                          {t('common.end_session')}
+                        </button>
+                      )}
+
                       <button
-                        onClick={() => setDialog({
-                          isOpen: true,
-                          title: t('common.end_session'),
-                          description: t('common.end_session_confirm'),
-                          type: 'warning',
-                          onConfirm: () => statusMutation.mutate({ id: res.id, status: 'COMPLETED' })
-                        })}
-                        className="px-6 py-3 rounded-xl bg-slate-100 text-slate-600 text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 hover:text-white transition-all duration-500"
+                        onClick={() => {
+                          setDialog({
+                            isOpen: true,
+                            title: t('common.delete'),
+                            description: t('common.delete_confirm'),
+                            type: 'danger',
+                            onConfirm: () => deleteMutation.mutate(res.id)
+                          })
+                        }}
+                        className="px-6 py-3 rounded-xl bg-slate-50 text-slate-400 text-[10px] font-black uppercase tracking-widest hover:bg-accent/10 hover:text-accent-dark transition-all duration-500"
                       >
-                        {t('common.end_session')}
+                        {t('common.delete')}
                       </button>
-                    )}
 
-                    <button
-                      onClick={() => {
-                        setDialog({
-                          isOpen: true,
-                          title: t('common.delete'),
-                          description: t('common.delete_confirm'),
-                          type: 'danger',
-                          onConfirm: () => deleteMutation.mutate(res.id)
-                        })
-                      }}
-                      className="px-6 py-3 rounded-xl bg-slate-50 text-slate-400 text-[10px] font-black uppercase tracking-widest hover:bg-accent/10 hover:text-accent-dark transition-all duration-500"
-                    >
-                      {t('common.delete')}
-                    </button>
-
-                    {res.status !== 'CANCELLED' && (
-                      <button onClick={() => statusMutation.mutate({ id: res.id, status: 'CANCELLED' })} className="px-6 py-3 rounded-xl bg-slate-50 text-slate-400 text-[10px] font-black uppercase tracking-widest hover:bg-accent/10 hover:text-accent-dark transition-all duration-500">{t('common.cancel')}</button>
-                    )}
-                  </div>
+                      {res.status !== 'CANCELLED' && (
+                        <button onClick={() => statusMutation.mutate({ id: res.id, status: 'CANCELLED' })} className="px-6 py-3 rounded-xl bg-slate-50 text-slate-400 text-[10px] font-black uppercase tracking-widest hover:bg-accent/10 hover:text-accent-dark transition-all duration-500">{t('common.cancel')}</button>
+                      )}
+                    </div>
+                  )}
 
                   {/* Dynamic Glass Glow */}
                   <div className="absolute -bottom-10 -right-10 size-40 bg-primary/10 rounded-full blur-[80px] opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
@@ -386,69 +388,7 @@ export const ReservationsPage = () => {
         </div>
       </div>
 
-      {convertItem && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-6 sm:p-4 backdrop-blur-3xl bg-slate-900/60 animate-in fade-in duration-500">
-          <div className="w-full max-w-2xl bg-white/95 rounded-[3.5rem] p-10 sm:p-14 shadow-[0_40px_100px_-20px_rgba(0,0,0,0.4)] animate-in zoom-in-95 duration-500 border border-white relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2" />
-
-            <h3 className="text-4xl font-black text-slate-900 tracking-tighter mb-4">{t('common.seat_title', { name: convertItem.customer_name })}</h3>
-            <p className="text-slate-600 text-sm font-bold uppercase tracking-widest mb-10 pb-6 border-b border-slate-100">{t('common.seat_hint', { table: convertItem.table?.name })}</p>
-
-            <div className="space-y-6 max-h-[50vh] overflow-y-auto no-scrollbar pr-2 mb-12">
-              {convertLines.map((line, idx) => (
-                <div key={idx} className="flex flex-col sm:flex-row gap-5 p-7 bg-slate-50 rounded-[2.5rem] border border-slate-200/60 group/item hover:bg-white hover:border-emerald-500/30 transition-all shadow-sm">
-                  <div className="flex-1 space-y-2">
-                    <label className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em] ml-2 block">{t('common.item_name')}</label>
-                    <select
-                      className="w-full h-14 bg-white border border-slate-200 rounded-2xl px-6 font-bold text-slate-900 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all outline-none"
-                      value={line.menu_item_id}
-                      onChange={e => {
-                        const n = [...convertLines]; n[idx].menu_item_id = Number(e.target.value); setConvertLines(n);
-                      }}
-                    >
-                      <option value={0}>{t('common.item_name')}</option>
-                      {menuItems.map(m => <option key={m.id} value={m.id}>{m.name} ({formatCurrency(m.price)})</option>)}
-                    </select>
-                  </div>
-                  <div className="w-full sm:w-28 space-y-2">
-                    <label className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em] text-center block">QTY</label>
-                    <input
-                      type="number"
-                      min={1}
-                      className="w-full h-14 bg-white border border-slate-200 rounded-2xl text-center font-bold text-slate-900 transition-all outline-none focus:border-emerald-500"
-                      value={line.quantity}
-                      onChange={e => {
-                        const n = [...convertLines]; n[idx].quantity = Number(e.target.value); setConvertLines(n);
-                      }}
-                    />
-                  </div>
-                  <button onClick={() => setConvertLines(convertLines.filter((_, i) => i !== idx))} className="sm:self-end h-14 w-14 rounded-2xl bg-slate-200/50 text-slate-500 hover:bg-accent/10 hover:text-accent-dark transition-all font-black text-2xl flex items-center justify-center">×</button>
-                </div>
-              ))}
-
-              <button
-                onClick={() => setConvertLines([...convertLines, { menu_item_id: 0, quantity: 1 }])}
-                className="w-full py-6 rounded-[2rem] border-2 border-dashed border-emerald-500/30 text-[11px] font-black text-emerald-600 uppercase tracking-[0.3em] hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-all duration-500 bg-emerald-500/5 shadow-sm"
-              >
-                + {t('common.add_item_btn')}
-              </button>
-            </div>
-
-            <div className="flex gap-6">
-              <button onClick={() => setConvertItem(null)} className="flex-1 py-6 rounded-3xl bg-slate-100 text-xs font-black text-slate-500 uppercase tracking-widest hover:bg-slate-900 hover:text-white transition-all shadow-sm">{t('common.cancel')}</button>
-              <button
-                onClick={() => {
-                  const valid = convertLines.filter(l => l.menu_item_id > 0);
-                  convertMutation.mutate({ id: convertItem.id, items: valid })
-                }}
-                className="flex-1 py-6 rounded-3xl bg-emerald-500 text-white shadow-xl shadow-emerald-500/30 text-xs font-black uppercase tracking-widest hover:bg-emerald-600 transition-all active:scale-[0.98] border border-emerald-400"
-              >
-                {t('common.seat_confirm')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Modal for adding items during seating removed per user request */}
 
       <Dialog
         isOpen={dialog.isOpen}

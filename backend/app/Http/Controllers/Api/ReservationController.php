@@ -151,19 +151,27 @@ class ReservationController extends Controller
         $this->authorize('delete', $reservation);
 
         $reservationDate = Carbon::parse($reservation->date_time);
-        
+
         // Prevent deleting if there is an open invoice
         $hasOpenInvoice = \App\Models\Invoice::where('table_id', $reservation->table_id)
             ->where('status', \App\Enums\InvoiceStatus::Open)
             ->exists();
 
         if ($hasOpenInvoice) {
-            throw \Illuminate\Validation\ValidationException::withMessages([
-                'id' => 'لا يمكن حذف الحجز. الفاتورة لا تزال مفتوحة لهذه الطاولة.',
-            ]);
+            return response()->json([
+                'message' => 'لا يمكن حذف الحجز. الفاتورة لا تزال مفتوحة لهذه الطاولة. يرجى إغلاق الفاتورة أولاً.',
+                'errors' => ['id' => ['الفاتورة لا تزال مفتوحة']]
+            ], 422);
         }
 
-        $reservation->delete();
+        try {
+            $reservation->delete();
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('reservation.delete_failed', ['id' => $id, 'error' => $e->getMessage()]);
+            return response()->json([
+                'message' => 'فشل الحذف بسبب قيود النظام. يرجى إلغاء الحجز بدلاً من حذفه إذا كان مرتبطاً بطلبات سابقة.',
+            ], 422);
+        }
 
         app(ReportCacheService::class)->clearReservations($reservationDate);
 
@@ -184,6 +192,13 @@ class ReservationController extends Controller
             'items.*.menu_item_id' => ['required', 'exists:menu_items,id'],
             'items.*.quantity' => ['required', 'integer', 'min:1'],
             'items.*.notes' => ['nullable', 'string'],
+        ]);
+
+        \Illuminate\Support\Facades\Log::info('reservation.convert', [
+            'reservation_id' => $reservation->id,
+            'table_id' => $reservation->table_id,
+            'item_count' => count($payload['items'] ?? []),
+            'payload' => $payload['items'] ?? [],
         ]);
 
         $order = app(OrderService::class)->createOrder([

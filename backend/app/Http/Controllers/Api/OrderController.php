@@ -86,14 +86,24 @@ class OrderController extends Controller
             });
         }
 
-        // Apply 5-record limit for Analysis role early
+        // Apply 5-record-per-day limit for Analysis role
         if ($user && ($user->hasPermission('view_limited_archive') || $user->email === 'stat@rms.com')) {
-            $results = $query->limit(5)->get();
+            // Use a subquery with ROW_NUMBER() to get up to 5 orders per calendar day
+            $innerQuery = Order::select('*')
+                ->selectRaw('ROW_NUMBER() OVER(PARTITION BY DATE(created_at) ORDER BY created_at DESC) as daily_rank')
+                ->where('status', \App\Enums\OrderStatus::Closed);
+
+            $results = Order::with(['items.menuItem', 'table.section', 'reservation', 'invoice'])
+                ->fromSub($innerQuery, 'ranked_orders')
+                ->where('daily_rank', '<=', 5)
+                ->orderByDesc('created_at')
+                ->get();
+
             return response()->json([
                 'data' => $results,
                 'current_page' => 1,
                 'last_page' => 1,
-                'per_page' => 5,
+                'per_page' => $results->count(),
                 'total' => $results->count(),
                 'from' => 1,
                 'to' => $results->count()

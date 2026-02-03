@@ -1,13 +1,14 @@
 import { useTranslation } from 'react-i18next'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useSettings } from '../context/SettingsContext'
 import { useMemo, useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { fetchPrepSections } from '../api/sections'
 import {
     LayoutDashboard, UtensilsCrossed,
     ChefHat, ClipboardList, Settings, LogOut, TrendingUp, Archive, Languages,
-    ChevronLeft, ChevronRight, Menu, Map
+    ChevronLeft, ChevronRight, Menu
 } from 'lucide-react'
 
 const NavContent = ({
@@ -20,13 +21,25 @@ const NavContent = ({
     location,
     t
 }: any) => {
+    const { settings, isLoading: isSettingsLoading } = useSettings()
+
     return (
         <div className="flex flex-col h-full bg-white border-r border-slate-200">
-            <div className="h-16 flex items-center px-6 border-b border-slate-100 shrink-0">
-                <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white mr-4 rtl:mr-0 rtl:ml-4 shadow-lg shadow-primary/30 transform group-hover:rotate-12 transition-transform">
-                    <LayoutDashboard size={22} strokeWidth={2.5} />
-                </div>
-                <h1 className="text-2xl font-black text-slate-900 tracking-tighter">RMS</h1>
+            <div className="h-20 flex items-center px-6 border-b border-slate-100 shrink-0">
+                {settings.restaurant_logo ? (
+                    <img
+                        src={settings.restaurant_logo}
+                        alt="Logo"
+                        className="w-12 h-12 rounded-xl object-contain mr-4 rtl:mr-0 rtl:ml-4 shadow-sm"
+                    />
+                ) : (
+                    <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white mr-4 rtl:mr-0 rtl:ml-4 shadow-lg shadow-primary/30 transform group-hover:rotate-12 transition-transform shrink-0">
+                        <LayoutDashboard size={22} strokeWidth={2.5} />
+                    </div>
+                )}
+                <h1 className="text-xl font-black text-slate-900 tracking-tighter truncate">
+                    {isSettingsLoading ? '...' : settings.restaurant_name}
+                </h1>
             </div>
 
             <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-6 text-slate-900">
@@ -103,6 +116,7 @@ const NavContent = ({
 export const Layout = () => {
     const { t, i18n } = useTranslation()
     const { user, logout, hasPermission } = useAuth()
+    const { settings, isLoading: isSettingsLoading } = useSettings()
     const navigate = useNavigate()
     const location = useLocation()
     const [isSidebarOpen, setIsSidebarOpen] = useState(true)
@@ -205,7 +219,18 @@ export const Layout = () => {
                     <button onClick={() => setIsMobileMenuOpen(true)} className="p-2 text-slate-600 hover:bg-slate-100/50 rounded-xl transition-colors">
                         <Menu size={24} />
                     </button>
-                    <span className="font-black text-xl text-slate-900 tracking-tight">RMS</span>
+                    <div className="flex items-center gap-2 overflow-hidden px-2">
+                        {settings.restaurant_logo ? (
+                            <img src={settings.restaurant_logo} alt="Logo" className="w-8 h-8 rounded-lg object-contain" />
+                        ) : (
+                            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white">
+                                <LayoutDashboard size={16} />
+                            </div>
+                        )}
+                        <span className="font-black text-lg text-slate-900 tracking-tight truncate">
+                            {isSettingsLoading ? '...' : settings.restaurant_name}
+                        </span>
+                    </div>
                     <div className="w-10" />
                 </header>
 

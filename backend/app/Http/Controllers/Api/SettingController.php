@@ -16,6 +16,15 @@ class SettingController extends Controller
         );
     }
 
+    public function branding()
+    {
+        return response()->json(
+            Setting::whereIn('key', ['restaurant_name', 'restaurant_logo'])
+                ->pluck('value', 'key')
+                ->all()
+        );
+    }
+
     public function update(Request $request)
     {
         $request->validate([

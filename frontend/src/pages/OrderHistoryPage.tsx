@@ -6,7 +6,7 @@ import {
     fetchOrderHistory
 } from '../api/reports'
 import { PageHeader } from '../components/PageHeader'
-import { formatCurrency } from '../utils/format'
+import { formatCurrency, formatLiteralTime, formatSmartDate } from '../utils/format'
 import {
     Search, Calendar, ChevronLeft, ChevronRight,
     Receipt, Hash, Clock, ArrowLeft
@@ -156,12 +156,12 @@ export const OrderHistoryPage = () => {
                                             {order.reservation && (
                                                 <div className="flex items-center gap-2.5 text-[10px] font-black text-slate-400 uppercase tracking-widest">
                                                     <div className="size-7 rounded-lg bg-amber-50 text-amber-500 flex items-center justify-center"><Clock className="size-4" /></div>
-                                                    {new Date(order.reservation.date_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                    {formatLiteralTime(order.reservation.date_time)}
                                                 </div>
                                             )}
                                             <div className="flex items-center gap-2.5 text-[10px] font-black text-slate-400 uppercase tracking-widest">
                                                 <div className="size-7 rounded-lg bg-purple-50 text-purple-500 flex items-center justify-center"><Calendar className="size-4" /></div>
-                                                {new Date(order.created_at).toLocaleDateString()}
+                                                {formatSmartDate(order.created_at)}
                                             </div>
                                         </div>
 
@@ -191,7 +191,7 @@ export const OrderHistoryPage = () => {
                                                 </div>
                                             </div>
                                             <div className="text-[9px] font-black text-slate-300 uppercase tracking-widest tabular-nums bg-white/40 px-3 py-1.5 rounded-xl border border-white/60">
-                                                {t('reports.paid_at')} {new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                {t('reports.paid_at')} {formatLiteralTime(order.created_at)}
                                             </div>
                                         </div>
                                     </div>

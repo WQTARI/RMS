@@ -85,6 +85,7 @@
         "update_failed": "Update Failed",
         "create_failed": "Creation Failed",
         "convert_failed": "Conversion Failed",
+        "delete_failed": "Delete Failed",
         "data_missing": "Data Missing",
         "end_session": "End Session",
         "cancelled": "Cancelled",

@@ -10,6 +10,10 @@ export const formatCurrency = (value: number) =>
  * ignoring any timezone offset suffix (like Z or +00:00).
  */
 export const parseLiteralDate = (iso: string): Date => {
+  // If it has timezone info (Z or +/-00:00), use native parser to handle offsets correctly
+  if (iso.includes('Z') || /[+-]\d{2}:\d{2}$/.test(iso)) {
+    return new Date(iso)
+  }
   const m = /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})/.exec(iso)
   if (!m) return new Date(iso)
   const [, y, mo, d, h, mi] = m
@@ -36,6 +40,11 @@ export const formatReservationDateTime = (iso: string): string => {
 export const formatLiteralTime = (iso: string): string => {
   const date = parseLiteralDate(iso)
   return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+}
+
+export const formatSmartDate = (iso: string): string => {
+  const date = parseLiteralDate(iso)
+  return date.toLocaleDateString()
 }
 
 export const toInputDateTime = (value?: string) => {

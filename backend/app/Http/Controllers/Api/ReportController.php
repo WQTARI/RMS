@@ -66,6 +66,10 @@ class ReportController extends Controller
                 ->groupBy('prep_sections.name')
                 ->orderByDesc('total')
                 ->get()
+                ->map(function ($row) {
+                    $row->total = (float) $row->total;
+                    return $row;
+                })
         );
 
         return response()->json($rows);
@@ -118,19 +122,19 @@ class ReportController extends Controller
                 // 1. Fetch performance for physical tables
                 $tables = RestaurantTable::withCount([
                     'orders' => function ($q) {
-                        $q->whereHas('invoice', fn($iq) => $iq->where('status', \App\Enums\InvoiceStatus::Paid));
-                    },
+                    $q->whereHas('invoice', fn($iq) => $iq->where('status', \App\Enums\InvoiceStatus::Paid));
+                },
                     'invoices' => function ($q) {
-                        $q->where('status', \App\Enums\InvoiceStatus::Paid);
-                    }
+                    $q->where('status', \App\Enums\InvoiceStatus::Paid);
+                }
                 ])
-                ->withSum([
-                    'invoices' => function ($q) {
+                    ->withSum([
+                        'invoices' => function ($q) {
                         $q->where('status', \App\Enums\InvoiceStatus::Paid);
                     }
-                ], 'total')
-                ->get()
-                ->map(function ($table) {
+                    ], 'total')
+                    ->get()
+                    ->map(function ($table) {
                     $table->avg_order_value = $table->invoices_count > 0
                         ? round($table->invoices_sum_total / $table->invoices_count, 2)
                         : 0;
@@ -144,7 +148,7 @@ class ReportController extends Controller
 
                 $takeawayTotalRevenue = $takeawayInvoices->sum('total');
                 $takeawayInvoiceCount = $takeawayInvoices->count();
-                
+
                 // Count orders associated with these takeaway invoices
                 $takeawayOrderCount = DB::table('orders')
                     ->join('invoices', 'orders.invoice_id', '=', 'invoices.id')
@@ -162,13 +166,13 @@ class ReportController extends Controller
                 $takeawayStats->orders_count = $takeawayOrderCount;
                 $takeawayStats->invoices_count = $takeawayInvoiceCount;
                 $takeawayStats->invoices_sum_total = $takeawayTotalRevenue;
-                $takeawayStats->avg_order_value = $takeawayInvoiceCount > 0 
-                    ? round($takeawayTotalRevenue / $takeawayInvoiceCount, 2) 
+                $takeawayStats->avg_order_value = $takeawayInvoiceCount > 0
+                    ? round($takeawayTotalRevenue / $takeawayInvoiceCount, 2)
                     : 0;
 
                 // 3. Merge and Sort
                 $tables->push($takeawayStats);
-                
+
                 return $tables->sortByDesc('invoices_sum_total')->values();
             }
         );
@@ -189,6 +193,10 @@ class ReportController extends Controller
                 ->groupBy('date')
                 ->orderBy('date')
                 ->get()
+                ->map(function ($row) {
+                    $row->total = (float) $row->total;
+                    return $row;
+                })
         );
 
         return response()->json($results);

@@ -11,7 +11,9 @@ import { ReportsPage } from './pages/ReportsPage'
 import { OrderHistoryPage } from './pages/OrderHistoryPage'
 import { AnalysisPage } from './pages/AnalysisPage'
 import WaiterPage from './pages/WaiterPage'
-import { useAuth } from './context/AuthContext'
+import { useAuth, AuthProvider } from './context/AuthContext'
+import { SettingsProvider } from './context/SettingsContext'
+import { RealtimeProvider } from './realtime/RealtimeProvider'
 import { AccessDenied } from './components/AccessDenied'
 import { Toaster } from 'react-hot-toast'
 
@@ -79,96 +81,101 @@ const RequirePermission = ({
 function App() {
   return (
     <ErrorBoundary>
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route
-          path="/"
-          element={
-            <RequireAuth>
-              <Layout />
-            </RequireAuth>
-          }
-        >
-          <Route
-            index
-            element={<RoleBasedRedirect />}
-          />
-          {/* Missing Floor Plan Route */}
-          <Route
-            path="floor-plan"
-            element={
-              <RequirePermission permission="manage_reservations">
-                <FloorPlanPage />
-              </RequirePermission>
-            }
-          />
-          <Route
-            path="reservations"
-            element={
-              <RequirePermission permission="manage_reservations">
-                <ReservationsPage />
-              </RequirePermission>
-            }
-          />
-          <Route
-            path="pos"
-            element={
-              <RequirePermission permission="create_order">
-                <PosPage />
-              </RequirePermission>
-            }
-          />
-          <Route
-            path="waiter"
-            element={
-              <RequirePermission permission="serve_items">
-                <WaiterPage />
-              </RequirePermission>
-            }
-          />
-          <Route
-            path="sections/:sectionId/orders"
-            element={
-              <RequirePermission permission="update_item_status">
-                <SectionOrdersPage />
-              </RequirePermission>
-            }
-          />
-          <Route
-            path="admin"
-            element={
-              <RequirePermission permission="manage_settings">
-                <AdminDashboardPage />
-              </RequirePermission>
-            }
-          />
-          <Route
-            path="reports"
-            element={
-              <RequirePermission permission="view_reports">
-                <ReportsPage />
-              </RequirePermission>
-            }
-          />
-          <Route
-            path="archive"
-            element={
-              <RequirePermission permission="view_reports">
-                <OrderHistoryPage />
-              </RequirePermission>
-            }
-          />
-          <Route
-            path="analysis"
-            element={
-              <RequirePermission permission="view_limited_archive">
-                <AnalysisPage />
-              </RequirePermission>
-            }
-          />
-        </Route>
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <AuthProvider>
+        <SettingsProvider>
+          <RealtimeProvider>
+            <Routes>
+              <Route path="/login" element={<LoginPage />} />
+              <Route
+                path="/"
+                element={
+                  <RequireAuth>
+                    <Layout />
+                  </RequireAuth>
+                }
+              >
+                <Route
+                  index
+                  element={<RoleBasedRedirect />}
+                />
+                <Route
+                  path="floor-plan"
+                  element={
+                    <RequirePermission permission="manage_reservations">
+                      <FloorPlanPage />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path="reservations"
+                  element={
+                    <RequirePermission permission="manage_reservations">
+                      <ReservationsPage />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path="pos"
+                  element={
+                    <RequirePermission permission="create_order">
+                      <PosPage />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path="waiter"
+                  element={
+                    <RequirePermission permission="serve_items">
+                      <WaiterPage />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path="sections/:sectionId/orders"
+                  element={
+                    <RequirePermission permission="update_item_status">
+                      <SectionOrdersPage />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path="admin"
+                  element={
+                    <RequirePermission permission="manage_settings">
+                      <AdminDashboardPage />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path="reports"
+                  element={
+                    <RequirePermission permission="view_reports">
+                      <ReportsPage />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path="archive"
+                  element={
+                    <RequirePermission permission="view_reports">
+                      <OrderHistoryPage />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path="analysis"
+                  element={
+                    <RequirePermission permission="view_limited_archive">
+                      <AnalysisPage />
+                    </RequirePermission>
+                  }
+                />
+              </Route>
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </RealtimeProvider>
+        </SettingsProvider>
+      </AuthProvider>
       <Toaster
         position="top-right"
         toastOptions={{

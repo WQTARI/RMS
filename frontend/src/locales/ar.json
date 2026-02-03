@@ -86,16 +86,19 @@
         "update_failed": "فشل التحديث",
         "create_failed": "فشل الإنشاء",
         "convert_failed": "فشل التحويل",
+        "delete_failed": "فشل الحذف",
         "data_missing": "بيانات مفقودة",
         "end_session": "إنهاء الجلسة",
         "end_session_confirm": "هل أنت متأكد من إنهاء الجلسة؟ سيتم تفريغ الطاولة وحساب مدة البقاء الفعلية.",
         "invoice_open_error": "الفاتورة لا تزال مفتوحة، يرجى إغلاق الفاتورة أولاً قبل إنهاء الجلسة.",
-        "completed": "مكتمل",
+        "completed": "الأرشيف",
         "cancelled": "ملغي",
         "active": "نشط",
         "all_section": "كل الأقسام",
         "system": "النظام",
-        "null": "غير محدد"
+        "null": "غير محدد",
+        "table": "الطاولة",
+        "item": "الصنف"
     },
     "nav": {
         "daily_analysis": "تحليلات يومية",
@@ -109,6 +112,12 @@
         "archive": "الأرشيف",
         "management": "الإدارة",
         "sign_out": "تسجيل الخروج"
+    },
+    "waiter": {
+        "ready_items": "جاهز للتقديم",
+        "no_items": "لا توجد طلبات",
+        "no_items_desc": "كل شيء تحت السيطرة! لا توجد طلبات بانتظار التقديم.",
+        "pickup": "استلام"
     },
     "pos": {
         "take_away": "طلبات خارجية",
@@ -161,7 +170,7 @@
         "available": "متاحة",
         "occupied": "مشغولة",
         "reserved": "محجوزة",
-        "completed": "مكتمل",
+        "completed": "الأرشيف",
         "pending": "قيد الانتظار",
         "preparing": "قيد التحضير",
         "ready": "جاهز",

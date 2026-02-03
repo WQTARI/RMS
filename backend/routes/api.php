@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request; // Added for the /user route
 
 Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:login');
+Route::get('/settings', [SettingController::class, 'branding']);
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
@@ -56,7 +57,6 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
         Route::get('/audits', [AuditController::class, 'index']);
 
         // Restaurant Settings
-        Route::get('/settings', [SettingController::class, 'index']);
         Route::put('/settings', [SettingController::class, 'update']);
         Route::post('/settings/upload-logo', [SettingController::class, 'uploadLogo']);
     });

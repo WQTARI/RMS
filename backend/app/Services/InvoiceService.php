@@ -28,10 +28,17 @@ class InvoiceService
             ]);
         }
 
-        return Invoice::firstOrCreate(
+        $invoice = Invoice::firstOrCreate(
             ['table_id' => $tableId, 'status' => InvoiceStatus::Open],
             ['customer_name' => $customerName, 'subtotal' => 0, 'tax' => 0, 'discount' => 0, 'total' => 0]
         );
+
+        // If we found an existing invoice but it has no name (or a different name), sync it from the current customer (e.g. from a reservation)
+        if ($customerName && $invoice->customer_name !== $customerName) {
+            $invoice->update(['customer_name' => $customerName]);
+        }
+
+        return $invoice;
     }
 
     public function closeInvoice(Invoice $invoice, array $payments, float $tax, float $discount, ?int $closedBy): Invoice

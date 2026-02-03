@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { fetchOrderHistory } from '../api/reports'
 import { PageHeader } from '../components/PageHeader'
+import { formatLiteralTime } from '../utils/format'
 import { formatCurrency } from '../utils/format'
 import { Receipt, Hash, Clock, Calendar, ArrowLeft } from 'lucide-react'
 
@@ -36,8 +37,8 @@ export const AnalysisPage = () => {
             </div>
 
             <PageHeader
-                title="Analysis Daily Report"
-                subtitle="Daily limited record view (Top 5)"
+                title={t('nav.archive')}
+                subtitle={t('common.historical_audit')}
             />
 
             <div className="px-10 mt-12 space-y-10">
@@ -80,7 +81,7 @@ export const AnalysisPage = () => {
 
                                         <div className="flex flex-wrap items-center gap-6 mb-10 pb-6 border-b border-white/80 text-slate-400 font-bold uppercase text-[9px]">
                                             <div className="flex items-center gap-2"><Calendar className="size-3 text-indigo-500" /> {new Date(order.created_at).toLocaleDateString()}</div>
-                                            <div className="flex items-center gap-2"><Clock className="size-3 text-purple-500" /> {new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                                            <div className="flex items-center gap-2"><Clock className="size-3 text-purple-500" /> {formatLiteralTime(order.created_at)}</div>
                                         </div>
 
                                         <div className="mt-auto pt-8 border-t border-white/80 flex justify-between items-end">
@@ -98,11 +99,7 @@ export const AnalysisPage = () => {
                     )}
                 </div>
 
-                <div className="p-8 glass rounded-[2rem] border-amber-200 bg-amber-50/30">
-                    <p className="text-[10px] font-bold text-amber-700 uppercase tracking-widest text-center">
-                        Note: This is a limited analytical view restricted to the top 5 records of the day.
-                    </p>
-                </div>
+
             </div>
         </div>
     )

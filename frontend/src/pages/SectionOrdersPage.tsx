@@ -3,6 +3,7 @@ import { useParams, Navigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { fetchOrders, updateOrderItemStatus } from '../api/orders'
 import { fetchPrepSections } from '../api/sections'
+import { parseLiteralDate } from '../utils/format'
 import { PageHeader } from '../components/PageHeader'
 import { StatusPill } from '../components/StatusPill'
 import type { OrderItem, OrderItemStatus, PrepSection } from '../types'
@@ -19,7 +20,7 @@ const nextStatus = (status: OrderItem['status']) => {
 }
 
 const getElapsedMinutes = (createdAt: string, nowTime: number) => {
-    const created = new Date(createdAt).getTime()
+    const created = parseLiteralDate(createdAt).getTime()
     return Math.floor((nowTime - created) / 60000)
 }
 
@@ -86,7 +87,7 @@ export const SectionOrdersPage = () => {
             .map((order) => {
                 const items = order.items.filter((item) => {
                     const matchSection = sId === null || item.prep_section_id === sId
-                    return matchSection && item.status !== 'SERVED' && item.status !== 'CANCELLED'
+                    return matchSection && item.status !== 'READY' && item.status !== 'SERVED' && item.status !== 'CANCELLED'
                 })
                 if (items.length === 0 || order.status === 'CANCELLED') return null
                 return { ...order, filteredItems: items }
@@ -134,7 +135,7 @@ export const SectionOrdersPage = () => {
                                         </h3>
                                         <div className="flex items-center gap-3">
                                             <div className="px-3 py-1 rounded-full bg-slate-900 text-[10px] font-black text-white tracking-widest uppercase shadow-lg shadow-slate-900/20">
-                                                Order #{order.id}
+                                                {t('common.order')} #{order.id}
                                             </div>
                                             <span className="h-1.5 w-1.5 rounded-full bg-slate-300" />
                                             <span className="text-[11px] font-black text-indigo-600 uppercase tracking-widest bg-indigo-50 px-2 py-0.5 rounded-md">
@@ -167,7 +168,7 @@ export const SectionOrdersPage = () => {
                                                     disabled={mutation.isPending}
                                                     className="px-8 py-3.5 rounded-2xl bg-slate-900 text-white text-[11px] font-black uppercase tracking-[0.2em] hover:bg-indigo-600 hover:shadow-2xl hover:shadow-indigo-500/40 transition-all duration-500 active:scale-95 disabled:opacity-50"
                                                 >
-                                                    {item.status === 'PENDING' ? t('common.start_prep') : item.status === 'IN_PROGRESS' ? t('common.mark_ready') : t('common.serve')}
+                                                    {item.status === 'PENDING' ? t('common.start_prep') : t('common.mark_ready')}
                                                 </button>
                                             </div>
                                         </div>

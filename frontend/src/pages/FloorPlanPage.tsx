@@ -8,6 +8,7 @@ import { PageHeader } from '../components/PageHeader'
 import { StatusPill } from '../components/StatusPill'
 import type { RestaurantTable, Reservation } from '../types'
 import { Users, Clock, Calendar } from 'lucide-react'
+import { formatLiteralTime, parseLiteralDate } from '../utils/format'
 import { Can } from '../components/Can'
 
 import { useRealtime } from '../realtime/RealtimeProvider'
@@ -41,8 +42,8 @@ export const FloorPlanPage = () => {
       res.table_id === tableId &&
       res.status !== 'CANCELLED' &&
       res.status !== 'SEATED' &&
-      new Date(res.date_time) > now &&
-      new Date(res.date_time) < twoHoursLater
+      parseLiteralDate(res.date_time) > now &&
+      parseLiteralDate(res.date_time) < twoHoursLater
     )
   }
 
@@ -110,7 +111,7 @@ export const FloorPlanPage = () => {
           <div
             key={sectionName}
             className="space-y-12 animate-in fade-in slide-in-from-bottom duration-1000"
-            style={{ animationDelay: `${sectionIdx * 200}ms`, animationFillMode: 'both' }}
+            style={{ animationDelay: `${sectionIdx * 200} ms`, animationFillMode: 'both' }}
           >
             {/* 2. Sleek Section Header with Advanced Border */}
             <div className="flex items-center gap-8 px-4">
@@ -178,7 +179,7 @@ export const FloorPlanPage = () => {
                               <Calendar className="size-5 md:size-6" />
                               <span className="text-[10px] font-black uppercase tracking-widest leading-none">{t('common.upcoming_res')}</span>
                             </div>
-                            <span className="text-[11px] font-black text-amber-900 bg-white/50 backdrop-blur-md px-3 py-1 rounded-xl border border-amber-200/50">{new Date(reservationSoon.date_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                            <span className="text-[11px] font-black text-amber-900 bg-white/50 backdrop-blur-md px-3 py-1 rounded-xl border border-amber-200/50">{formatLiteralTime(reservationSoon.date_time)}</span>
                           </div>
                           <div className="text-lg font-black text-amber-950 truncate flex items-center gap-3">
                             <div className="size-2 rounded-full bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.6)]" />

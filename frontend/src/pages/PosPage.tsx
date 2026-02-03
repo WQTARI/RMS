@@ -6,36 +6,23 @@ import { fetchOrders, createOrder, addItemsToOrder, confirmOrder, cancelOrder } 
 import { fetchMenuItems } from '../api/menuItems'
 import { closeInvoice, fetchInvoices, fetchOpenInvoiceForTable, openInvoice } from '../api/invoices'
 import { PageHeader } from '../components/PageHeader'
-import { formatCurrency } from '../utils/format'
+import { formatCurrency, formatLiteralTime } from '../utils/format'
 import { Can } from '../components/Can'
+import { useSettings } from '../context/SettingsContext'
 import type { MenuItem, Order } from '../types'
 import { useTranslation } from 'react-i18next'
 import { Dialog } from '../components/Dialog'
 import { useRealtime } from '../realtime/RealtimeProvider'
 import { Printer } from 'lucide-react'
-import { fetchSettings as fetchRestaurantSettingsApi } from '../api/settings'
+// Removed fetchRestaurantSettingsApi as it is now handled by useSettings
 
 export const PosPage = () => {
   const { t, i18n } = useTranslation()
   const queryClient = useQueryClient()
   const { isEnabled: isRealtimeEnabled } = useRealtime()
-  const [restaurantSettings, setRestaurantSettings] = useState({
-    restaurant_name: '',
-    restaurant_logo: '',
-  })
+  const { settings: restaurantSettings } = useSettings()
 
-  useEffect(() => {
-    loadRestaurantSettings()
-  }, [])
 
-  const loadRestaurantSettings = async () => {
-    try {
-      const data = await fetchRestaurantSettingsApi()
-      setRestaurantSettings(prev => ({ ...prev, ...data }))
-    } catch (error) {
-      console.error('Failed to fetch restaurant settings:', error)
-    }
-  }
 
   const handlePrint = () => {
     window.print()
@@ -485,7 +472,7 @@ export const PosPage = () => {
             ) : (
               <div className="space-y-6">
                 {(Array.isArray(orders) ? orders : (orders as any)?.data || []).map((order: any, orderIdx: number) => {
-                  const createdTime = new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                  const createdTime = formatLiteralTime(order.created_at)
                   const isConfirmed = !!order.confirmed_at
 
                   return (
@@ -923,7 +910,7 @@ export const PosPage = () => {
               />
             )}
             <h1 className="text-xl font-black uppercase tracking-tight">
-              {restaurantSettings.restaurant_name || 'RMS RESTAURANT'}
+              {restaurantSettings.restaurant_name || 'RMS System'}
             </h1>
             <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
               {new Date().toLocaleString()}

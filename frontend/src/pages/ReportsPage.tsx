@@ -43,7 +43,7 @@ export const ReportsPage = () => {
   })
 
   // Summaries
-  const totalRevenue = trend.reduce((acc, curr) => acc + curr.total, 0)
+  const totalRevenue = trend.reduce((acc, curr) => acc + Number(curr.total || 0), 0)
   // Calculate Average Daily using ACTIVE days (days with sales) instead of the selected period
   // This avoids artificially low averages for new restaurants with only a few days of data
   const activeDays = trend.length
@@ -73,8 +73,8 @@ export const ReportsPage = () => {
 
           {/* KPI Row */}
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            <KpiCard title={t('reports.today_revenue')} value={formatCurrency(today.total)} icon={<DollarSign className="w-6 h-6" />} color="indigo" />
-            <KpiCard title={t('reports.monthly_sales')} value={formatCurrency(month.total)} icon={<TrendingUp className="w-6 h-6" />} color="emerald" />
+            <KpiCard title={t('reports.today_revenue')} value={formatCurrency(Number(today.total || 0))} icon={<DollarSign className="w-6 h-6" />} color="indigo" />
+            <KpiCard title={t('reports.monthly_sales')} value={formatCurrency(Number(month.total || 0))} icon={<TrendingUp className="w-6 h-6" />} color="emerald" />
             <KpiCard title={t('reports.total_reservations')} value={resStats.total_reservations.toString()} icon={<Users className="w-6 h-6" />} color="amber" />
             <KpiCard title={t('reports.avg_daily')} value={formatCurrency(avgDaily)} icon={<Award className="w-6 h-6" />} color="purple" />
           </div>
