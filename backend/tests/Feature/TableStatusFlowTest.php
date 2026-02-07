@@ -26,7 +26,7 @@ class TableStatusFlowTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_table_status_tracks_reservation_order_and_invoice(): void
+    public function test_table_status_tracks_order_and_invoice(): void
     {
         $section = TableSection::create(['name' => 'Main', 'is_active' => true]);
         $table = RestaurantTable::create([
@@ -45,21 +45,11 @@ class TableStatusFlowTest extends TestCase
             'is_active' => true,
         ]);
 
-        $reservation = Reservation::create([
-            'customer_name' => 'Test',
-            'phone' => '123',
-            'date_time' => now()->addMinutes(10),
-            'duration_minutes' => 60,
-            'number_of_guests' => 2,
-            'table_id' => $table->id,
-            'status' => ReservationStatus::Created,
-        ]);
         app(TableStatusService::class)->updateStatus($table);
-        $this->assertEquals(TableStatus::Reserved, $table->fresh()->status);
+        $this->assertEquals(TableStatus::Available, $table->fresh()->status);
 
         $order = app(OrderService::class)->createOrder([
             'table_id' => $table->id,
-            'reservation_id' => $reservation->id,
             'items' => [
                 ['menu_item_id' => $menuItem->id, 'quantity' => 1],
             ],
@@ -75,7 +65,6 @@ class TableStatusFlowTest extends TestCase
             ['method' => 'CASH', 'amount' => 10],
         ], 0, 0, null);
 
-        $reservation->update(['status' => ReservationStatus::Completed]);
         app(TableStatusService::class)->updateStatus($table);
         $this->assertEquals(TableStatus::Available, $table->fresh()->status);
     }

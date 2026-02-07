@@ -33,3 +33,8 @@ export const closeInvoice = async (
   const { data } = await apiClient.put<Invoice>(`/invoices/${id}`, payload)
   return data
 }
+
+export const fetchInvoiceTickets = async (id: number) => {
+  const { data } = await apiClient.get<any[]>(`/invoices/${id}/tickets`)
+  return data
+}

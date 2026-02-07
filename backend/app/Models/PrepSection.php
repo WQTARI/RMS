@@ -13,6 +13,9 @@ class PrepSection extends Model
 
     protected $fillable = [
         'name',
+        'printer_ip',
+        'printer_port',
+        'printer_name',
         'is_active',
     ];
 

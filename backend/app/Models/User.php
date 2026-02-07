@@ -26,6 +26,7 @@ class User extends Authenticatable
         'password',
         'is_active',
         'prep_section_id',
+        'pin',
         'email_verified_at',
     ];
 
@@ -37,6 +38,7 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'pin',
     ];
 
     /**
@@ -52,6 +54,20 @@ class User extends Authenticatable
             'is_active' => 'boolean',
             'prep_section_id' => 'integer',
         ];
+    }
+
+    public function setPinAttribute($value)
+    {
+        if ($value) {
+            $this->attributes['pin'] = \Illuminate\Support\Facades\Hash::make($value);
+        } else {
+            $this->attributes['pin'] = null;
+        }
+    }
+
+    public function verifyPin(string $pin): bool
+    {
+        return \Illuminate\Support\Facades\Hash::check($pin, $this->pin);
     }
 
     public function roles(): BelongsToMany

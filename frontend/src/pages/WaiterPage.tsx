@@ -72,10 +72,10 @@ export default function WaiterPage() {
                 {/* Header */}
                 <div className="mb-12 text-center">
                     <h1 className="text-6xl font-black text-slate-900 uppercase tracking-tighter mb-4">
-                        {t('nav.waiter', 'Waiter Station')}
+                        {t('nav.waiter')}
                     </h1>
                     <p className="text-lg font-bold text-slate-500 uppercase tracking-widest">
-                        {t('waiter.ready_items', 'Ready to Serve')}
+                        {t('waiter.ready_items')}
                     </p>
                 </div>
 
@@ -85,10 +85,10 @@ export default function WaiterPage() {
                         <div className="inline-block p-12 rounded-[4rem] bg-white/60 backdrop-blur-xl border-2 border-white/80 shadow-2xl">
                             <CheckCircle2 size={80} className="mx-auto mb-6 text-emerald-500" />
                             <h2 className="text-3xl font-black text-slate-900 uppercase tracking-tight mb-2">
-                                {t('waiter.no_items', 'All Clear!')}
+                                {t('waiter.no_items')}
                             </h2>
                             <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">
-                                {t('waiter.no_items_desc', 'No items ready for pickup')}
+                                {t('waiter.no_items_desc')}
                             </p>
                         </div>
                     </div>
@@ -115,7 +115,7 @@ export default function WaiterPage() {
                                         <div className="text-3xl font-black text-slate-900 uppercase tracking-tighter">
                                             {item.order.table?.name
                                                 ? `${item.order.table.name}${item.order.customer_name ? ` (${item.order.customer_name})` : ''}`
-                                                : (item.order.customer_name || `${t('common.order', 'Order')} #${item.order.id}`)
+                                                : (item.order.customer_name || `${t('common.order')} #${item.order.id}`)
                                             }
                                         </div>
                                     </div>

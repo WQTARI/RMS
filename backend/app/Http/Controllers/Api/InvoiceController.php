@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Enums\PaymentMethod;
 use App\Models\Invoice;
 use App\Services\InvoiceService;
+use App\Services\PrinterService;
 use App\Services\TableStatusService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -93,7 +94,7 @@ class InvoiceController extends Controller
             $request->user()?->id
         );
 
-        return response()->json($invoice->load('payments', 'table.section'));
+        return response()->json($invoice->load('payments', 'table.section', 'orders.items.menuItem'));
     }
 
     /**
@@ -107,5 +108,34 @@ class InvoiceController extends Controller
         $invoice->delete();
 
         return response()->json(['message' => 'Deleted']);
+    }
+
+    /**
+     * Get departmental tickets for the invoice.
+     */
+    public function tickets(string $id)
+    {
+        $invoice = Invoice::findOrFail($id);
+        $this->authorize('view', $invoice);
+
+        $tickets = app(PrinterService::class)->generateTickets($invoice);
+
+        return response()->json($tickets);
+    }
+
+    /**
+     * Trigger backend printing for kitchen tickets.
+     */
+    public function printKitchenTickets(Request $request, string $id, PrinterService $printerService)
+    {
+        $invoice = Invoice::findOrFail($id);
+        $this->authorize('view', $invoice);
+
+        try {
+            $results = $printerService->printInvoiceTickets($invoice);
+            return response()->json(['message' => 'Print jobs processed', 'details' => $results]);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Printing failed', 'error' => $e->getMessage()], 500);
+        }
     }
 }

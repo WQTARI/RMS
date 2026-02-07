@@ -173,7 +173,7 @@ export const OrderHistoryPage = () => {
                                                             {item.quantity}
                                                         </div>
                                                         <span className="text-sm font-black text-slate-800 uppercase tracking-tight group-hover/item:text-indigo-600 transition-colors">
-                                                            {item.menu_item?.name || 'Deleted Item'}
+                                                            {item.menu_item?.name || t('reports.deleted_item')}
                                                         </span>
                                                     </div>
                                                     <span className="text-xs font-black text-slate-400 tabular-nums">

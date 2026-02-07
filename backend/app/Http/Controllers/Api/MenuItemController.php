@@ -14,7 +14,6 @@ class MenuItemController extends Controller
      */
     public function index()
     {
-        $this->authorize('view_only');
         $query = MenuItem::with('prepSection')->orderBy('name');
 
         if (request()->has('active')) {
@@ -30,7 +29,6 @@ class MenuItemController extends Controller
     public function store(Request $request)
     {
         \Illuminate\Support\Facades\Log::info('MenuItem Store Request:', $request->all());
-        $this->authorize('manage_menu');
 
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -61,7 +59,6 @@ class MenuItemController extends Controller
      */
     public function show(string $id)
     {
-        $this->authorize('view_only');
         return response()->json(MenuItem::with('prepSection')->findOrFail($id));
     }
 
@@ -70,7 +67,6 @@ class MenuItemController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $this->authorize('manage_menu');
         $menuItem = MenuItem::findOrFail($id);
 
         $data = $request->validate([
@@ -102,7 +98,6 @@ class MenuItemController extends Controller
      */
     public function destroy(string $id)
     {
-        $this->authorize('manage_menu');
         MenuItem::findOrFail($id)->delete();
 
         return response()->json(['message' => 'Deleted']);

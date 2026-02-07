@@ -14,9 +14,8 @@ class RestaurantTableController extends Controller
      */
     public function index()
     {
-        $this->authorize('viewAny', RestaurantTable::class);
         return response()->json(
-            RestaurantTable::with(['section', 'reservations', 'orders.items'])
+            RestaurantTable::with(['section', 'orders.items'])
                 ->orderBy('name')
                 ->get()
         );

@@ -75,6 +75,31 @@ class MenuItemsSeeder extends Seeder
             ],
         ];
 
+        // Add Drinks
+        $items[] = [
+            'name' => 'Mojito',
+            'price' => 8.00,
+            'description' => 'Fresh mint, lime, soda.',
+            'category' => MenuCategory::Drinks,
+            'prep_section' => 'Drinks',
+        ];
+        $items[] = [
+            'name' => 'Espresso',
+            'price' => 3.50,
+            'description' => 'Single shot premium coffee.',
+            'category' => MenuCategory::Drinks,
+            'prep_section' => 'Drinks',
+        ];
+
+        // Add more Kitchen items
+        $items[] = [
+            'name' => 'T-Bone Steak',
+            'price' => 35.00,
+            'description' => '500g grilled steak with herbs.',
+            'category' => MenuCategory::Food,
+            'prep_section' => 'Kitchen',
+        ];
+
         foreach ($items as $item) {
             $prepSection = $prepSections->get($item['prep_section']);
             if (!$prepSection) {

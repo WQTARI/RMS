@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Enums\TableStatus;
 use App\Models\RestaurantTable;
 use App\Models\TableSection;
 use Illuminate\Database\Seeder;
@@ -47,7 +46,7 @@ class RestaurantTablesSeeder extends Seeder
 
         foreach ($tables as $sectionName => $sectionTables) {
             $section = $sections->get($sectionName);
-            if (! $section) {
+            if (!$section) {
                 continue;
             }
 
@@ -57,7 +56,6 @@ class RestaurantTablesSeeder extends Seeder
                     [
                         'capacity' => $tableData['capacity'],
                         'section_id' => $section->id,
-                        'status' => TableStatus::Available,
                     ]
                 );
             }

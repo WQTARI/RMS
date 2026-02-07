@@ -76,7 +76,7 @@ export const RestaurantSettingsPage = () => {
                     <h1 className="text-4xl font-black text-slate-900 tracking-tighter mb-2">Restaurant Settings</h1>
                     <p className="text-slate-500 font-medium tracking-tight">Configure Your Brand Identity and Invoicing</p>
                 </div>
-                <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
+                <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600">
                     <Store size={32} />
                 </div>
             </div>

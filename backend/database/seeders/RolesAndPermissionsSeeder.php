@@ -18,7 +18,6 @@ class RolesAndPermissionsSeeder extends Seeder
             'create_order' => 'Create new orders.',
             'modify_order_content' => 'Add or remove items from orders.',
             'update_item_status' => 'Update preparation status of items.',
-            'manage_reservations' => 'Create, update and delete reservations.',
             'close_invoice' => 'Close and settle invoices.',
             'view_reports' => 'View sales and performance reports.',
             'manage_settings' => 'Manage system settings.',
@@ -43,7 +42,6 @@ class RolesAndPermissionsSeeder extends Seeder
                 'create_order',
                 'modify_order_content',
                 'update_item_status',
-                'manage_reservations',
                 'close_invoice',
                 'view_reports',
                 'manage_settings',
@@ -57,10 +55,6 @@ class RolesAndPermissionsSeeder extends Seeder
                 'create_order',
                 'modify_order_content',
                 'close_invoice',
-            ],
-            'Reception' => [
-                'view_only',
-                'manage_reservations',
             ],
             'Kitchen' => [
                 'update_item_status',

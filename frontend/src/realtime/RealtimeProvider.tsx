@@ -37,7 +37,6 @@ export const RealtimeProvider = ({ children }: { children: React.ReactNode }) =>
       const ordersChannel = echo.private('orders')
       const orderItemsChannel = echo.private('order-items')
       const invoicesChannel = echo.private('invoices')
-      const reservationsChannel = echo.private('reservations')
 
       if (user?.prep_section_id) {
         echo.private(`prep-sections.${user.prep_section_id}`).listen('.ProductionTicketDispatched', (event: { order: Order; items: OrderItem[] }) => {
@@ -55,7 +54,6 @@ export const RealtimeProvider = ({ children }: { children: React.ReactNode }) =>
         })
       }
 
-      reservationsChannel.listen('.ReservationUpdated', () => queryClient.invalidateQueries({ queryKey: ['reservations'] }))
 
       tablesChannel.listen('.TableStatusUpdated', (event: { table: RestaurantTable }) => {
         queryClient.setQueryData<RestaurantTable[]>(['tables'], (current) => {
@@ -130,7 +128,6 @@ export const RealtimeProvider = ({ children }: { children: React.ReactNode }) =>
       echo.leave('orders')
       echo.leave('order-items')
       echo.leave('invoices')
-      echo.leave('reservations')
       if (user?.prep_section_id) {
         echo.leave(`prep-sections.${user.prep_section_id}`)
       }

@@ -2,39 +2,38 @@
 
 namespace App\Models;
 
-use App\Enums\ReservationStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 
-class Reservation extends Model
+class DraftOrderItem extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'customer_name',
-        'phone',
-        'date_time',
-        'duration_minutes',
-        'number_of_guests',
         'table_id',
-        'status',
+        'menu_item_id',
+        'quantity',
         'notes',
     ];
 
     protected $casts = [
-        'date_time' => 'datetime',
-        'status' => ReservationStatus::class,
+        'quantity' => 'integer',
     ];
 
+    /**
+     * Get the table that owns the draft item.
+     */
     public function table(): BelongsTo
     {
         return $this->belongsTo(RestaurantTable::class, 'table_id');
     }
 
-    public function order(): HasOne
+    /**
+     * Get the menu item.
+     */
+    public function menuItem(): BelongsTo
     {
-        return $this->hasOne(Order::class);
+        return $this->belongsTo(MenuItem::class);
     }
 }

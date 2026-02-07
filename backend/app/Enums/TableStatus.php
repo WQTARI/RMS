@@ -5,6 +5,6 @@ namespace App\Enums;
 enum TableStatus: string
 {
     case Available = 'AVAILABLE';
-    case Reserved = 'RESERVED';
+    case Browsing = 'BROWSING';
     case Occupied = 'OCCUPIED';
 }

@@ -76,7 +76,9 @@ class OrderPolicy
      */
     public function confirm(User $user, Order $order): bool
     {
-        return $user->hasPermission('create_order') || $user->hasPermission('manage_reservations');
+        $result = $user->hasPermission('create_order') || $user->hasPermission('manage_reservations');
+        Log::info("OrderPolicy@confirm: User {$user->id} result=" . ($result ? 'ALLOW' : 'DENY'));
+        return $result;
     }
 
     /**

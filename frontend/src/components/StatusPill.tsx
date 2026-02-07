@@ -19,11 +19,11 @@ export const StatusPill = ({ status }: { status: SupportedStatus }) => {
       dot: 'bg-accent',
       label: t('status.occupied'),
     },
-    RESERVED: {
+    BROWSING: {
       bg: 'bg-amber-500/15',
       text: 'text-amber-700',
       dot: 'bg-amber-500',
-      label: t('status.reserved'),
+      label: t('status.browsing'),
     },
     COMPLETED: {
       bg: 'bg-blue-500/15',

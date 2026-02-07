@@ -11,15 +11,17 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        // Get exact foreign key name for orders.reservation_id
-        $fk = DB::select("SELECT CONSTRAINT_NAME FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'orders' AND COLUMN_NAME = 'reservation_id' AND REFERENCED_TABLE_NAME IS NOT NULL");
+        if (DB::getDriverName() !== 'sqlite') {
+            // Get exact foreign key name for orders.reservation_id
+            $fk = DB::select("SELECT CONSTRAINT_NAME FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'orders' AND COLUMN_NAME = 'reservation_id' AND REFERENCED_TABLE_NAME IS NOT NULL");
 
-        if (!empty($fk)) {
-            DB::statement("ALTER TABLE orders DROP FOREIGN KEY {$fk[0]->CONSTRAINT_NAME}");
+            if (!empty($fk)) {
+                DB::statement("ALTER TABLE orders DROP FOREIGN KEY {$fk[0]->CONSTRAINT_NAME}");
+            }
+
+            // Add foreign key with ON DELETE SET NULL
+            DB::statement("ALTER TABLE orders ADD CONSTRAINT orders_reservation_id_foreign FOREIGN KEY (reservation_id) REFERENCES reservations(id) ON DELETE SET NULL");
         }
-
-        // Add foreign key with ON DELETE SET NULL
-        DB::statement("ALTER TABLE orders ADD CONSTRAINT orders_reservation_id_foreign FOREIGN KEY (reservation_id) REFERENCES reservations(id) ON DELETE SET NULL");
     }
 
     /**
@@ -27,9 +29,11 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        DB::statement("ALTER TABLE orders DROP FOREIGN KEY orders_reservation_id_foreign");
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE orders DROP FOREIGN KEY orders_reservation_id_foreign");
 
-        // Restore default restricted foreign key
-        DB::statement("ALTER TABLE orders ADD CONSTRAINT orders_reservation_id_foreign FOREIGN KEY (reservation_id) REFERENCES reservations(id)");
+            // Restore default restricted foreign key
+            DB::statement("ALTER TABLE orders ADD CONSTRAINT orders_reservation_id_foreign FOREIGN KEY (reservation_id) REFERENCES reservations(id)");
+        }
     }
 };

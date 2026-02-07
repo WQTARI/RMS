@@ -63,7 +63,7 @@ export const AdminDashboardPage = () => {
       <div className="max-w-[1600px] mx-auto px-10">
         <PageHeader
           title={t('nav.management')}
-          subtitle="System Configuration & Oversight"
+          subtitle={t('admin.subtitle')}
         />
 
         {/* High-Fidelity Pill Navigation */}
@@ -90,32 +90,32 @@ export const AdminDashboardPage = () => {
         {/* Content Area */}
         <div className="animate-fade-in">
           {activeTab === 'menu' && (
-            <Can I="manage_menu" fallback={<div className="p-8 card text-slate-400 italic">No permission to manage menu.</div>}>
+            <Can I="manage_menu" fallback={<div className="p-8 card text-slate-400 italic">{t('admin.no_permission_menu')}</div>}>
               <MenuModule openConfirm={openConfirm} showError={showError} />
             </Can>
           )}
           {activeTab === 'tables' && (
-            <Can I="manage_sections" fallback={<div className="p-8 card text-slate-400 italic">No permission to manage tables.</div>}>
+            <Can I="manage_sections" fallback={<div className="p-8 card text-slate-400 italic">{t('admin.no_permission_tables')}</div>}>
               <TablesModule openConfirm={openConfirm} showError={showError} />
             </Can>
           )}
           {activeTab === 'sections' && (
-            <Can I="manage_sections" fallback={<div className="p-8 card text-slate-400 italic">No permission to manage sections.</div>}>
+            <Can I="manage_sections" fallback={<div className="p-8 card text-slate-400 italic">{t('admin.no_permission_sections')}</div>}>
               <SectionsModule openPrompt={openPrompt} openConfirm={openConfirm} showError={showError} />
             </Can>
           )}
           {activeTab === 'users' && (
-            <Can I="manage_users" fallback={<div className="p-8 card text-slate-400 italic">No permission to manage users.</div>}>
+            <Can I="manage_users" fallback={<div className="p-8 card text-slate-400 italic">{t('admin.no_permission_users')}</div>}>
               <UsersModule openConfirm={openConfirm} />
             </Can>
           )}
           {activeTab === 'audits' && (
-            <Can I="manage_settings" fallback={<div className="p-8 card text-slate-400 italic">No permission to view logs.</div>}>
+            <Can I="manage_settings" fallback={<div className="p-8 card text-slate-400 italic">{t('admin.no_permission_logs')}</div>}>
               <AuditsModule />
             </Can>
           )}
           {activeTab === 'restaurant' && (
-            <Can I="manage_settings" fallback={<div className="p-8 card text-slate-400 italic">No permission to manage restaurant settings.</div>}>
+            <Can I="manage_settings" fallback={<div className="p-8 card text-slate-400 italic">{t('admin.no_permission_settings')}</div>}>
               <RestaurantSettingsPage />
             </Can>
           )}
@@ -179,7 +179,7 @@ const MenuModule = ({ openConfirm, showError }: { openConfirm: (t: string, d: st
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault()
     if (!form.prep_section_id) {
-      showError("Please create a Prep Section first.")
+      showError(t('admin.create_prep_first'))
       return
     }
     createMutation.mutate(form)
@@ -213,10 +213,10 @@ const MenuModule = ({ openConfirm, showError }: { openConfirm: (t: string, d: st
 
         <form className="space-y-8" onSubmit={handleCreate}>
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Item Name</label>
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">{t('admin.item_name', 'Item Name')}</label>
             <input
               className="w-full px-6 py-5 bg-white/60 border border-white/80 rounded-2xl text-sm font-black uppercase tracking-tight placeholder:text-slate-300 focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all duration-500 shadow-inner outline-none"
-              placeholder="e.g. Cheese Burger"
+              placeholder={t('admin.item_placeholder', 'e.g. Cheese Burger')}
               value={form.name}
               onChange={e => setForm({ ...form, name: e.target.value })}
               required
@@ -225,7 +225,7 @@ const MenuModule = ({ openConfirm, showError }: { openConfirm: (t: string, d: st
 
           <div className="grid grid-cols-2 gap-6">
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Price</label>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">{t('admin.price', 'Price')}</label>
               <div className="relative">
                 <input
                   type="number"
@@ -240,7 +240,7 @@ const MenuModule = ({ openConfirm, showError }: { openConfirm: (t: string, d: st
               </div>
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Prep (Min)</label>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">{t('admin.prep_time', 'Prep (Min)')}</label>
               <input
                 type="number"
                 className="w-full px-6 py-5 bg-white/60 border border-white/80 rounded-2xl text-sm font-black tracking-tight focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all duration-500 shadow-inner outline-none"
@@ -277,7 +277,7 @@ const MenuModule = ({ openConfirm, showError }: { openConfirm: (t: string, d: st
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Image (URL or File)</label>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">{t('admin.image_url', 'Image (URL or File)')}</label>
               <div className="flex gap-2">
                 <input
                   className="flex-1 px-6 py-5 bg-white/60 border border-white/80 rounded-2xl text-xs font-bold focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all shadow-inner"
@@ -296,13 +296,13 @@ const MenuModule = ({ openConfirm, showError }: { openConfirm: (t: string, d: st
                     }}
                   />
                   <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">
-                    {imageFile ? 'File Selected' : 'Choose File'}
+                    {imageFile ? t('admin.file_selected') : t('admin.choose_file')}
                   </span>
                 </label>
               </div>
               {imageFile && (
                 <div className="flex items-center justify-between px-2">
-                  <p className="text-[10px] text-indigo-500 font-bold">Selected: {imageFile.name}</p>
+                  <p className="text-[10px] text-indigo-500 font-bold">{t('admin.selected')}: {imageFile.name}</p>
                   <button
                     type="button"
                     onClick={() => setImageFile(null)}
@@ -344,7 +344,7 @@ const MenuModule = ({ openConfirm, showError }: { openConfirm: (t: string, d: st
           </button>
           {prepSections.length === 0 && (
             <p className="text-[10px] text-rose-500 font-bold mt-2 text-center uppercase tracking-widest animate-pulse">
-              * Please create a Prep Section first.
+              * {t('admin.create_prep_first')}
             </p>
           )}
         </form>
@@ -370,8 +370,8 @@ const MenuModule = ({ openConfirm, showError }: { openConfirm: (t: string, d: st
             ))
           ) : isError ? (
             <div className="col-span-full p-12 text-center glass rounded-[3rem] border-rose-200 bg-rose-50/50">
-              <p className="text-sm font-black text-rose-600 uppercase tracking-widest leading-none mb-2">Failed to load content</p>
-              <p className="text-[10px] text-rose-400 font-bold uppercase tracking-widest">Please check your connection or permissions</p>
+              <p className="text-sm font-black text-rose-600 uppercase tracking-widest leading-none mb-2">{t('admin.failed_load')}</p>
+              <p className="text-[10px] text-rose-400 font-bold uppercase tracking-widest">{t('admin.check_connection')}</p>
             </div>
           ) : filtered.length === 0 ? (
             <div className="col-span-full p-20 text-center glass rounded-[3rem] border-dashed border-2 bg-white/10 shrink-0">
@@ -389,7 +389,7 @@ const MenuModule = ({ openConfirm, showError }: { openConfirm: (t: string, d: st
                   {item.image_url ? (
                     <img src={item.image_url} className="size-full object-cover group-hover:scale-110 transition-transform duration-700" />
                   ) : (
-                    <div className="size-full flex items-center justify-center text-[10px] text-slate-300 font-black uppercase tracking-widest">No Img</div>
+                    <div className="size-full flex items-center justify-center text-[10px] text-slate-300 font-black uppercase tracking-widest">{t('admin.no_img')}</div>
                   )}
                 </div>
                 <div className="flex-1 min-w-0 flex flex-col justify-between py-1">
@@ -447,7 +447,7 @@ const TablesModule = ({ openConfirm, showError }: { openConfirm: (t: string, d: 
   const handleAddTable = () => {
     if (!formData.name) return;
     if (!formData.section_id) {
-      showError("Please create a Table Area first.");
+      showError(t('admin.no_areas_found'));
       return;
     }
     createMutation.mutate(formData as any);
@@ -461,7 +461,7 @@ const TablesModule = ({ openConfirm, showError }: { openConfirm: (t: string, d: 
             <Plus size={24} />
           </div>
           <div className="space-y-1">
-            <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest leading-none">Add New Table</h3>
+            <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest leading-none">{t('admin.add_new_table')}</h3>
             <div className="h-1 w-12 bg-gradient-to-r from-emerald-500 to-transparent rounded-full" />
           </div>
         </div>
@@ -471,7 +471,7 @@ const TablesModule = ({ openConfirm, showError }: { openConfirm: (t: string, d: 
             <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">{t('common.table_name')}</label>
             <input
               className="w-full px-6 py-5 bg-white/60 border border-white/80 rounded-2xl text-sm font-black uppercase tracking-tight placeholder:text-slate-300 focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all duration-500 shadow-inner outline-none"
-              placeholder="e.g. T-12"
+              placeholder={t('admin.table_placeholder', 'e.g. T-12')}
               value={formData.name}
               onChange={e => setFormData({ ...formData, name: e.target.value })}
             />
@@ -488,7 +488,7 @@ const TablesModule = ({ openConfirm, showError }: { openConfirm: (t: string, d: 
           <div className="flex-1 min-w-[250px] space-y-2">
             <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">{t('common.area')}</label>
             <select className="w-full px-6 py-5 bg-white border border-white/80 rounded-2xl text-xs font-black uppercase tracking-widest focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all shadow-inner" value={formData.section_id || ''} onChange={e => setFormData({ ...formData, section_id: Number(e.target.value) })}>
-              {!formData.section_id && <option value="">Select Area...</option>}
+              {!formData.section_id && <option value="">{t('common.select_area')}</option>}
               {sec?.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
             </select>
           </div>
@@ -502,7 +502,7 @@ const TablesModule = ({ openConfirm, showError }: { openConfirm: (t: string, d: 
         </div>
         {sec.length === 0 && (
           <p className="text-[10px] text-rose-500 font-bold mt-4 uppercase tracking-widest text-center animate-pulse">
-            * No Table Areas found. Please add an Area Section first.
+            * {t('admin.no_areas_found')}
           </p>
         )}
       </div>
@@ -561,37 +561,40 @@ const SectionsModule = ({ openPrompt, openConfirm, showError }: { openPrompt: (t
   )
 }
 
-const SectionCard = ({ title, items, onAdd, onDelete }: { title: string, items: any[], onAdd: () => void, onDelete: (id: number) => void }) => (
-  <div className="glass rounded-[3rem] border-white/60 shadow-2xl shadow-indigo-500/5 bg-white/40 overflow-hidden min-h-[500px] flex flex-col">
-    <div className="p-10 border-b border-white/60 flex justify-between items-center bg-white/40">
-      <div className="space-y-1">
-        <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest leading-none flex items-center gap-3">
-          <Layers size={20} className="text-slate-400" /> {title}
-        </h3>
-        <div className="h-1 w-12 bg-gradient-to-r from-indigo-500 to-transparent rounded-full" />
+const SectionCard = ({ title, items, onAdd, onDelete }: { title: string, items: any[], onAdd: () => void, onDelete: (id: number) => void }) => {
+  const { t } = useTranslation()
+  return (
+    <div className="glass rounded-[3rem] border-white/60 shadow-2xl shadow-indigo-500/5 bg-white/40 overflow-hidden min-h-[500px] flex flex-col">
+      <div className="p-10 border-b border-white/60 flex justify-between items-center bg-white/40">
+        <div className="space-y-1">
+          <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest leading-none flex items-center gap-3">
+            <Layers size={20} className="text-slate-400" /> {title}
+          </h3>
+          <div className="h-1 w-12 bg-gradient-to-r from-indigo-500 to-transparent rounded-full" />
+        </div>
+        <button onClick={onAdd} className="px-6 py-3 bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl hover:bg-indigo-600 hover:scale-105 transition-all duration-500">
+          <Plus size={14} /> {t('common.add_new')}
+        </button>
       </div>
-      <button onClick={onAdd} className="px-6 py-3 bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl hover:bg-indigo-600 hover:scale-105 transition-all duration-500">
-        <Plus size={14} /> Add New
-      </button>
+      <div className="p-6 space-y-4">
+        {items.map(s => (
+          <div key={s.id} className="flex justify-between items-center p-6 bg-white/60 rounded-3xl border border-white/80 transition-all duration-500 hover:bg-white hover:shadow-lg group">
+            <span className="text-sm font-black text-slate-800 uppercase tracking-tight">{s.name}</span>
+            <button onClick={() => onDelete(s.id)} className="size-10 rounded-xl bg-white text-slate-300 hover:text-rose-600 hover:bg-rose-50 transition-all duration-300 flex items-center justify-center border border-white opacity-0 group-hover:opacity-100 group-hover:shadow-md">
+              <Trash2 size={16} />
+            </button>
+          </div>
+        ))}
+        {items.length === 0 && (
+          <div className="flex-1 flex flex-col items-center justify-center py-20 opacity-20 text-slate-400">
+            <ClipboardList size={48} className="mb-4" />
+            <p className="text-[10px] font-black uppercase tracking-[0.3em]">{t('admin.no_sections_yet')}</p>
+          </div>
+        )}
+      </div>
     </div>
-    <div className="p-6 space-y-4">
-      {items.map(s => (
-        <div key={s.id} className="flex justify-between items-center p-6 bg-white/60 rounded-3xl border border-white/80 transition-all duration-500 hover:bg-white hover:shadow-lg group">
-          <span className="text-sm font-black text-slate-800 uppercase tracking-tight">{s.name}</span>
-          <button onClick={() => onDelete(s.id)} className="size-10 rounded-xl bg-white text-slate-300 hover:text-rose-600 hover:bg-rose-50 transition-all duration-300 flex items-center justify-center border border-white opacity-0 group-hover:opacity-100 group-hover:shadow-md">
-            <Trash2 size={16} />
-          </button>
-        </div>
-      ))}
-      {items.length === 0 && (
-        <div className="flex-1 flex flex-col items-center justify-center py-20 opacity-20 text-slate-400">
-          <ClipboardList size={48} className="mb-4" />
-          <p className="text-[10px] font-black uppercase tracking-[0.3em]">No sections yet</p>
-        </div>
-      )}
-    </div>
-  </div>
-)
+  )
+}
 
 const UsersModule = ({ openConfirm }: { openConfirm: (t: string, d: string, cb: () => void) => void }) => {
   const { t } = useTranslation()
@@ -600,13 +603,13 @@ const UsersModule = ({ openConfirm }: { openConfirm: (t: string, d: string, cb: 
   const { data: roles = [] } = useQuery({ queryKey: ['roles'], queryFn: fetchRoles })
   const { data: prepSections = [] } = useQuery({ queryKey: ['prep-sections'], queryFn: fetchPrepSections })
 
-  const [uForm, setUForm] = useState({ name: '', email: '', password: '', role_ids: [] as number[], prep_section_id: undefined as number | undefined })
+  const [uForm, setUForm] = useState({ name: '', email: '', password: '', role_ids: [] as number[], prep_section_id: undefined as number | undefined, pin: '' })
 
   const createMutation = useMutation({
     mutationFn: createUser,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
-      setUForm({ name: '', email: '', password: '', role_ids: [], prep_section_id: undefined })
+      setUForm({ name: '', email: '', password: '', role_ids: [], prep_section_id: undefined, pin: '' })
     }
   })
 
@@ -615,6 +618,8 @@ const UsersModule = ({ openConfirm }: { openConfirm: (t: string, d: string, cb: 
     ['Kitchen', 'Desserts', 'Drinks', 'Waiters', 'POS'].includes(name) ||
     prepSections.some(ps => ps.name === name)
   );
+
+  const showPin = selectedRoleNames.includes('Waiters');
 
   return (
     <div className="grid gap-12 lg:grid-cols-[400px,1fr] items-start">
@@ -634,23 +639,32 @@ const UsersModule = ({ openConfirm }: { openConfirm: (t: string, d: string, cb: 
 
         <form className="space-y-8" onSubmit={e => { e.preventDefault(); createMutation.mutate(uForm) }}>
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Full Name</label>
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">{t('common.full_name')}</label>
             <input className="w-full px-6 py-5 bg-white/60 border border-white/80 rounded-2xl text-sm font-black uppercase tracking-tight placeholder:text-slate-300 focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all duration-500 shadow-inner outline-none" placeholder="e.g. John Doe" value={uForm.name} onChange={e => setUForm({ ...uForm, name: e.target.value })} required />
           </div>
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Email Address</label>
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">{t('common.email')}</label>
             <input type="email" className="w-full px-6 py-5 bg-white/60 border border-white/80 rounded-2xl text-sm font-black placeholder:text-slate-300 focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all duration-500 shadow-inner outline-none" placeholder="john@example.com" value={uForm.email} onChange={e => setUForm({ ...uForm, email: e.target.value })} required />
           </div>
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Password</label>
-            <input type="password" className="w-full px-6 py-5 bg-white/60 border border-white/80 rounded-2xl text-sm font-black placeholder:text-slate-300 focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all duration-500 shadow-inner outline-none" placeholder="••••••••" value={uForm.password} onChange={e => setUForm({ ...uForm, password: e.target.value })} required />
+
+          <div className={showPin ? "grid grid-cols-2 gap-4" : "space-y-2"}>
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">{t('common.password')}</label>
+              <input type="password" className="w-full px-6 py-5 bg-white/60 border border-white/80 rounded-2xl text-sm font-black placeholder:text-slate-300 focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all duration-500 shadow-inner outline-none" placeholder="••••••••" value={uForm.password} onChange={e => setUForm({ ...uForm, password: e.target.value })} required />
+            </div>
+            {showPin && (
+              <div className="space-y-2 animate-in slide-in-from-left-2 duration-500">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">{t('admin.pin_digits')}</label>
+                <input type="text" maxLength={4} className="w-full px-6 py-5 bg-white/60 border border-white/80 rounded-2xl text-sm font-black placeholder:text-slate-300 focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all duration-500 shadow-inner outline-none text-center tracking-widest" placeholder="1234" value={uForm.pin || ''} onChange={e => setUForm({ ...uForm, pin: e.target.value.replace(/\D/g, '') })} required={showPin} />
+              </div>
+            )}
           </div>
 
           {showPrepSection && (
             <div className="space-y-2 animate-in slide-in-from-top-2 duration-500">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Operational Area (Prep Section)</label>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">{t('admin.prep_sections')}</label>
               <select className="w-full px-6 py-5 bg-white border border-white/80 rounded-2xl text-xs font-black uppercase tracking-widest focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all shadow-inner" value={uForm.prep_section_id || ''} onChange={e => setUForm({ ...uForm, prep_section_id: e.target.value ? Number(e.target.value) : undefined })}>
-                <option value="">Full Access / None</option>
+                <option value="">{t('admin.full_access_none')}</option>
                 {prepSections.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
             </div>
@@ -700,6 +714,7 @@ const UsersModule = ({ openConfirm }: { openConfirm: (t: string, d: string, cb: 
             <div className="space-y-1 mb-8">
               <div className="font-black text-slate-900 text-2xl tracking-tighter uppercase truncate w-full px-4">{u.name}</div>
               <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{u.email}</div>
+              {u.pin && <div className="text-[10px] font-bold text-indigo-500 mt-2 bg-indigo-50 px-2 py-1 rounded-lg">PIN: {u.pin}</div>}
             </div>
 
             <div className="flex flex-wrap gap-2 justify-center mb-8">
@@ -710,7 +725,7 @@ const UsersModule = ({ openConfirm }: { openConfirm: (t: string, d: string, cb: 
               onClick={() => openConfirm(t('common.delete'), `${t('common.delete_confirm')} (${u.name})`, () => deleteUser(u.id).then(() => queryClient.invalidateQueries({ queryKey: ['users'] })))}
               className="mt-auto w-full py-4 rounded-2xl bg-white text-slate-300 hover:text-rose-600 hover:bg-rose-50 transition-all duration-500 border border-white font-black text-[10px] uppercase tracking-widest group-hover:shadow-lg"
             >
-              Terminate Access
+              {t('admin.terminate_access')}
             </button>
             {/* Decorative element */}
             <div className="absolute top-0 left-0 p-6 opacity-0 group-hover:opacity-10 transition-opacity">

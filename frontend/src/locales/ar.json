@@ -11,7 +11,9 @@
         "actions": "إجراءات",
         "total": "الإجمالي",
         "back": "رجوع",
+        "quantity": "الكمية",
         "capacity": "السعة",
+        "add": "إضافة",
         "guests": "أشخاص",
         "mapping": "جاري رسم خريطة المطعم...",
         "live": "مباشر",
@@ -98,7 +100,11 @@
         "system": "النظام",
         "null": "غير محدد",
         "table": "الطاولة",
-        "item": "الصنف"
+        "item": "الصنف",
+        "view_table": "عرض الطاولة",
+        "all_sections": "كل الأقسام",
+        "set_quantity": "تحديد الكمية للصنف",
+        "notes_placeholder": "مثال: بدون بصل، زيادة شطة..."
     },
     "nav": {
         "daily_analysis": "تحليلات يومية",
@@ -206,7 +212,8 @@
         "no_records": "لا توجد سجلات مطابقة في الأرشيف.",
         "walking_guest": "عميل عابر",
         "grand_total": "المجموع الكلي",
-        "paid_at": "تم الدفع الساعة"
+        "paid_at": "تم الدفع الساعة",
+        "deleted_item": "صنف محذوف"
     },
     "admin": {
         "title": "وحدة التحكم المركزية",
@@ -224,7 +231,30 @@
         "table_areas": "مناطق الطاولات",
         "prep_sections": "أقسام التحضير",
         "new_area": "منطقة جديدة",
-        "new_prep": "قسم جديد"
+        "new_prep": "قسم جديد",
+        "no_permission_menu": "ليس لديك صلاحية إدارة القائمة.",
+        "no_permission_tables": "ليس لديك صلاحية إدارة الطاولات.",
+        "no_permission_sections": "ليس لديك صلاحية إدارة الأقسام.",
+        "no_permission_users": "ليس لديك صلاحية إدارة المستخدمين.",
+        "no_permission_logs": "ليس لديك صلاحية عرض السجلات.",
+        "no_permission_settings": "ليس لديك صلاحية إدارة إعدادات المطعم.",
+        "item_placeholder": "مثال: برجر جبنة",
+        "prep_time": "التحضير (دقيقة)",
+        "image_url": "الصورة (رابط أو ملف)",
+        "file_selected": "تم اختيار الملف",
+        "choose_file": "اختر ملف",
+        "selected": "محدد",
+        "create_prep_first": "يرجى إنشاء قسم تحضير أولاً.",
+        "failed_load": "فشل تحميل المحتوى",
+        "check_connection": "يرجى التحقق من الاتصال أو الصلاحيات",
+        "no_img": "بدون صورة",
+        "add_new_table": "إضافة طاولة جديدة",
+        "table_placeholder": "مثال: T-12",
+        "no_areas_found": "لا توجد مناطق للطاولات. يرجى إضافة منطقة أولاً.",
+        "no_sections_yet": "لا توجد أقسام بعد",
+        "full_access_none": "صلاحية كاملة / لا يوجد",
+        "terminate_access": "إنهاء الوصول",
+        "pin_digits": "الرمز السري (4-6 أرقام)"
     },
     "auth": {
         "sign_in_title": "تسجيل الدخول إلى النظام",

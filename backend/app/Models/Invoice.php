@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Invoice extends Model
 {
     use HasFactory;
+    use \App\Traits\HasOptimisticLocking;
 
     protected $fillable = [
         'table_id',

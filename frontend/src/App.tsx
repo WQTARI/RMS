@@ -3,13 +3,15 @@ import { ErrorBoundary } from './components/ErrorBoundary'
 import { Layout } from './components/Layout'
 import { LoginPage } from './pages/LoginPage'
 import { FloorPlanPage } from './pages/FloorPlanPage'
-import { ReservationsPage } from './pages/ReservationsPage'
 import { PosPage } from './pages/PosPage'
 import { SectionOrdersPage } from './pages/SectionOrdersPage'
 import { AdminDashboardPage } from './pages/AdminDashboardPage'
 import { ReportsPage } from './pages/ReportsPage'
 import { OrderHistoryPage } from './pages/OrderHistoryPage'
 import { AnalysisPage } from './pages/AnalysisPage'
+import { QRCodesPage } from './pages/QRCodesPage'
+import { CustomerMenuPage } from './pages/CustomerMenuPage'
+import { CaptainMenuPage } from './pages/CaptainMenuPage'
 import WaiterPage from './pages/WaiterPage'
 import { useAuth, AuthProvider } from './context/AuthContext'
 import { SettingsProvider } from './context/SettingsContext'
@@ -37,7 +39,7 @@ const RoleBasedRedirect = () => {
   }
 
   // 2. Admin/Managers should go to Floor Plan first
-  if (hasPermission('manage_settings') || hasPermission('manage_reservations')) {
+  if (hasPermission('manage_settings')) {
     return <Navigate to="/floor-plan" replace />
   }
 
@@ -86,6 +88,10 @@ function App() {
           <RealtimeProvider>
             <Routes>
               <Route path="/login" element={<LoginPage />} />
+              {/* Public Customer Menu - No Auth Required */}
+              <Route path="/menu" element={<CustomerMenuPage />} />
+              {/* Captain Menu - No Auth Required (PIN verified in page) */}
+              <Route path="/captain-menu" element={<CaptainMenuPage />} />
               <Route
                 path="/"
                 element={
@@ -101,16 +107,8 @@ function App() {
                 <Route
                   path="floor-plan"
                   element={
-                    <RequirePermission permission="manage_reservations">
+                    <RequirePermission permission="view_only">
                       <FloorPlanPage />
-                    </RequirePermission>
-                  }
-                />
-                <Route
-                  path="reservations"
-                  element={
-                    <RequirePermission permission="manage_reservations">
-                      <ReservationsPage />
                     </RequirePermission>
                   }
                 />
@@ -167,6 +165,14 @@ function App() {
                   element={
                     <RequirePermission permission="view_limited_archive">
                       <AnalysisPage />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path="qr-codes"
+                  element={
+                    <RequirePermission permission="manage_settings">
+                      <QRCodesPage />
                     </RequirePermission>
                   }
                 />

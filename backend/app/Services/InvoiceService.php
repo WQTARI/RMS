@@ -44,9 +44,7 @@ class InvoiceService
     public function closeInvoice(Invoice $invoice, array $payments, float $tax, float $discount, ?int $closedBy): Invoice
     {
         if ($invoice->status === InvoiceStatus::Paid) {
-            throw \Illuminate\Validation\ValidationException::withMessages([
-                'status' => 'Invoice is already paid.',
-            ]);
+            throw new \App\Exceptions\InvoiceAlreadyPaidException($invoice->id);
         }
 
         return DB::transaction(function () use ($invoice, $payments, $tax, $discount, $closedBy) {
@@ -93,10 +91,25 @@ class InvoiceService
             }
 
             foreach ($payments as $payment) {
+                $idempotencyKey = $payment['idempotency_key'] ?? null;
+
+                // Check if payment with this idempotency key already exists
+                if ($idempotencyKey) {
+                    $existing = InvoicePayment::where('idempotency_key', $idempotencyKey)->first();
+                    if ($existing) {
+                        \App\Services\StructuredLogger::invoiceEvent('payment_duplicate_prevented', [
+                            'invoice_id' => $invoice->id,
+                            'idempotency_key' => $idempotencyKey,
+                        ]);
+                        continue; // Skip duplicate payment
+                    }
+                }
+
                 InvoicePayment::create([
                     'invoice_id' => $invoice->id,
                     'method' => $payment['method'],
                     'amount' => $payment['amount'],
+                    'idempotency_key' => $idempotencyKey,
                     'paid_at' => now(),
                 ]);
             }

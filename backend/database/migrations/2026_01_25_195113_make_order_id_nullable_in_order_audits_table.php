@@ -10,11 +10,13 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::table('order_audits', function (Blueprint $table) {
-            $table->dropForeign(['order_id']);
-            $table->unsignedBigInteger('order_id')->nullable()->change();
-            $table->foreign('order_id')->references('id')->on('orders')->nullOnDelete();
-        });
+        if (DB::getDriverName() !== 'sqlite') {
+            Schema::table('order_audits', function (Blueprint $table) {
+                $table->dropForeign(['order_id']);
+                $table->unsignedBigInteger('order_id')->nullable()->change();
+                $table->foreign('order_id')->references('id')->on('orders')->nullOnDelete();
+            });
+        }
     }
 
     /**
@@ -22,10 +24,12 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::table('order_audits', function (Blueprint $table) {
-            $table->dropForeign(['order_id']);
-            $table->unsignedBigInteger('order_id')->nullable(false)->change();
-            $table->foreign('order_id')->references('id')->on('orders')->cascadeOnDelete();
-        });
+        if (DB::getDriverName() !== 'sqlite') {
+            Schema::table('order_audits', function (Blueprint $table) {
+                $table->dropForeign(['order_id']);
+                $table->unsignedBigInteger('order_id')->nullable(false)->change();
+                $table->foreign('order_id')->references('id')->on('orders')->cascadeOnDelete();
+            });
+        }
     }
 };

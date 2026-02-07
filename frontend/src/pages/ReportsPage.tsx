@@ -4,10 +4,10 @@ import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  BarChart, Bar, PieChart, Pie, Cell
+  PieChart, Pie, Cell
 } from 'recharts'
 import {
-  TrendingUp, Users, DollarSign, Utensils,
+  TrendingUp, DollarSign, Utensils,
   ChevronRight, ArrowUpRight, Award
 } from 'lucide-react'
 import {
@@ -16,8 +16,7 @@ import {
   fetchSalesBySection,
   fetchTablePerformance,
   fetchTopItems,
-  fetchSalesTrend,
-  fetchReservationStats
+  fetchSalesTrend
 } from '../api/reports'
 import { PageHeader } from '../components/PageHeader'
 import { Can } from '../components/Can'
@@ -31,21 +30,33 @@ export const ReportsPage = () => {
   const [days, setDays] = useState(30)
 
   // Queries
-  const { data: trend = [] } = useQuery({ queryKey: ['reports', 'trend', days], queryFn: () => fetchSalesTrend(days) })
-  const { data: today = { total: 0 } } = useQuery({ queryKey: ['reports', 'daily', 'today'], queryFn: () => fetchDailySales() })
-  const { data: month = { total: 0 } } = useQuery({ queryKey: ['reports', 'monthly', 'current'], queryFn: () => fetchMonthlySales() })
-  const { data: sections = [] } = useQuery({ queryKey: ['reports', 'sections'], queryFn: fetchSalesBySection })
-  const { data: items = [] } = useQuery({ queryKey: ['reports', 'top-items'], queryFn: () => fetchTopItems(10) })
-  const { data: tables = [] } = useQuery({ queryKey: ['reports', 'tables'], queryFn: fetchTablePerformance })
-  const { data: resStats = { total_reservations: 0, total_guests: 0, by_status: [] } } = useQuery({
-    queryKey: ['reports', 'res-stats', days],
-    queryFn: () => fetchReservationStats(days)
+  const { data: trend = [] } = useQuery({
+    queryKey: ['reports', 'trend', days],
+    queryFn: () => fetchSalesTrend(days)
+  })
+  const { data: today = { total: 0 } } = useQuery({
+    queryKey: ['reports', 'daily', 'today'],
+    queryFn: () => fetchDailySales()
+  })
+  const { data: month = { total: 0 } } = useQuery({
+    queryKey: ['reports', 'monthly', 'current'],
+    queryFn: () => fetchMonthlySales()
+  })
+  const { data: sections = [] } = useQuery({
+    queryKey: ['reports', 'sections'],
+    queryFn: fetchSalesBySection
+  })
+  const { data: items = [] } = useQuery({
+    queryKey: ['reports', 'top-items'],
+    queryFn: () => fetchTopItems(10)
+  })
+  const { data: tables = [] } = useQuery({
+    queryKey: ['reports', 'tables'],
+    queryFn: fetchTablePerformance
   })
 
   // Summaries
   const totalRevenue = trend.reduce((acc, curr) => acc + Number(curr.total || 0), 0)
-  // Calculate Average Daily using ACTIVE days (days with sales) instead of the selected period
-  // This avoids artificially low averages for new restaurants with only a few days of data
   const activeDays = trend.length
   const avgDaily = activeDays > 0 ? totalRevenue / activeDays : 0
 
@@ -72,14 +83,26 @@ export const ReportsPage = () => {
         <div className="px-4 mt-8 space-y-8">
 
           {/* KPI Row */}
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            <KpiCard title={t('reports.today_revenue')} value={formatCurrency(Number(today.total || 0))} icon={<DollarSign className="w-6 h-6" />} color="indigo" />
-            <KpiCard title={t('reports.monthly_sales')} value={formatCurrency(Number(month.total || 0))} icon={<TrendingUp className="w-6 h-6" />} color="emerald" />
-            <KpiCard title={t('reports.total_reservations')} value={resStats.total_reservations.toString()} icon={<Users className="w-6 h-6" />} color="amber" />
-            <KpiCard title={t('reports.avg_daily')} value={formatCurrency(avgDaily)} icon={<Award className="w-6 h-6" />} color="purple" />
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <KpiCard
+              title={t('reports.today_revenue')}
+              value={formatCurrency(Number(today.total || 0))}
+              icon={<DollarSign className="w-6 h-6" />}
+              color="indigo"
+            />
+            <KpiCard
+              title={t('reports.monthly_sales')}
+              value={formatCurrency(Number(month.total || 0))}
+              icon={<TrendingUp className="w-6 h-6" />}
+              color="emerald"
+            />
+            <KpiCard
+              title={t('reports.avg_daily')}
+              value={formatCurrency(avgDaily)}
+              icon={<Award className="w-6 h-6" />}
+              color="purple"
+            />
           </div>
-
-          {/* ... (Trend/Section charts unchanged) ... */}
 
           {/* Secondary Grid: Trend & Distribution */}
           <div className="grid gap-8 lg:grid-cols-3">
@@ -91,7 +114,13 @@ export const ReportsPage = () => {
                 </div>
                 <div className="flex bg-white/40 backdrop-blur-md p-1.5 rounded-2xl border border-white/60">
                   {[7, 30, 90].map(d => (
-                    <button key={d} onClick={() => setDays(d)} className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-tighter transition-all duration-500 ${days === d ? 'bg-white text-indigo-600 shadow-xl' : 'text-slate-500 hover:text-indigo-600 hover:bg-white/60'}`}>{t('common.days_filter', { count: d })}</button>
+                    <button
+                      key={d}
+                      onClick={() => setDays(d)}
+                      className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-tighter transition-all duration-500 ${days === d ? 'bg-white text-indigo-600 shadow-xl' : 'text-slate-500 hover:text-indigo-600 hover:bg-white/60'}`}
+                    >
+                      {t('common.days_filter', { count: d })}
+                    </button>
                   ))}
                 </div>
               </div>
@@ -156,40 +185,9 @@ export const ReportsPage = () => {
             </div>
           </div>
 
-          {/* Tertiary Grid: Reservations & Performance */}
-          <div className="grid gap-8 lg:grid-cols-2">
-            {/* Reservations Distribution */}
-            <div className="glass rounded-[3rem] p-10 border-white/40 shadow-2xl shadow-indigo-500/5 flex flex-col h-[500px]">
-              <div className="flex justify-between items-start mb-10">
-                <div className="space-y-1">
-                  <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] leading-none mb-1">{t('reports.reservation_status')}</h3>
-                  <div className="h-1 w-12 bg-gradient-to-r from-amber-500 to-transparent rounded-full" />
-                </div>
-                <div className="text-right glass px-6 py-3 rounded-2xl border border-white/60">
-                  <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('reports.total_guests')}</div>
-                  <div className="text-2xl font-black text-slate-900 leading-none tabular-nums">{resStats.total_guests}</div>
-                </div>
-              </div>
-              <div className="flex-1 min-h-0">
-                {resStats.by_status.length > 0 && (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={resStats.by_status} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-                      <XAxis dataKey="status" axisLine={false} tickLine={false} tick={{ fontSize: 9, fontWeight: 900, fill: '#94a3b8' }} tickFormatter={(s) => t(`status.${s.toLowerCase()}`)} dy={15} />
-                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 9, fontWeight: 900, fill: '#94a3b8' }} />
-                      <Tooltip cursor={{ fill: 'rgba(255,255,255,0.4)', radius: 15 }} content={<CustomTooltip />} />
-                      <Bar dataKey="count" radius={[15, 15, 0, 0]} animationDuration={1800}>
-                        {resStats.by_status.map((_, index) => (
-                          <Cell key={index} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                )}
-              </div>
-            </div>
-
-            {/* Top Signature Items */}
-            <div className="glass rounded-[3rem] p-10 border-white/40 shadow-2xl shadow-indigo-500/5 flex flex-col h-[500px]">
+          {/* Tertiary Grid: Performance & Top Items */}
+          <div className="grid gap-8">
+            <div className="glass rounded-[3rem] p-10 border-white/40 shadow-2xl shadow-indigo-500/5 flex flex-col">
               <div className="flex justify-between items-center mb-10">
                 <div className="space-y-1">
                   <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] leading-none mb-1">{t('reports.top_items')}</h3>
@@ -199,7 +197,7 @@ export const ReportsPage = () => {
                   <Award className="size-6" />
                 </div>
               </div>
-              <div className="flex-1 min-h-0 overflow-y-auto pr-4 custom-scrollbar space-y-4">
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {items.map((item, idx) => (
                   <div key={idx} className="group relative glass rounded-[2rem] p-6 border-white/60 hover:bg-white/80 transition-all duration-500">
                     <div className="flex items-center justify-between mb-4">
@@ -271,7 +269,7 @@ export const ReportsPage = () => {
               <h2 className="text-5xl font-black uppercase tracking-tighter italic animate-pulse-subtle">{t('reports.drill_down_title')}</h2>
               <p className="text-lg text-slate-400 font-bold max-w-2xl mx-auto">{t('reports.drill_down_hint')}</p>
               <button
-                onClick={() => navigate('/reports/order-history')}
+                onClick={() => navigate('/archive')}
                 className="group inline-flex items-center gap-4 px-12 py-6 bg-white text-slate-900 rounded-[2rem] font-black text-base uppercase tracking-widest shadow-2xl hover:scale-110 active:scale-95 transition-all duration-500"
               >
                 {t('reports.go_to_history')}

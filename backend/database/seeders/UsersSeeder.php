@@ -55,6 +55,19 @@ class UsersSeeder extends Seeder
                 'email' => 'waiter@rms.test',
                 'role' => 'Waiters',
             ],
+            // Captains
+            [
+                'name' => 'Captain Ahmed',
+                'email' => 'ahmed@rms.test',
+                'role' => 'Waiters', // Captains share Waiter role permissions for now, or new role
+                'pin' => '1234',
+            ],
+            [
+                'name' => 'Captain Sarah',
+                'email' => 'sarah@rms.test',
+                'role' => 'Waiters',
+                'pin' => '5678',
+            ],
         ];
 
         foreach ($users as $userData) {
@@ -75,6 +88,7 @@ class UsersSeeder extends Seeder
                     'password' => Hash::make($defaultPassword),
                     'is_active' => true,
                     'prep_section_id' => $prepSectionId,
+                    'pin' => $userData['pin'] ?? null,
                 ]
             );
 

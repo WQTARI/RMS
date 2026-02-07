@@ -34,7 +34,7 @@ class OrderController extends Controller
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ]);
 
-        $query = Order::with(['items.menuItem', 'table.section', 'reservation', 'invoice'])
+        $query = Order::with(['items.menuItem', 'table.section', 'invoice'])
             ->orderByDesc('created_at');
 
         if ($request->filled('search')) {
@@ -93,7 +93,7 @@ class OrderController extends Controller
                 ->selectRaw('ROW_NUMBER() OVER(PARTITION BY DATE(created_at) ORDER BY created_at DESC) as daily_rank')
                 ->where('status', \App\Enums\OrderStatus::Closed);
 
-            $results = Order::with(['items.menuItem', 'table.section', 'reservation', 'invoice'])
+            $results = Order::with(['items.menuItem', 'table.section', 'invoice'])
                 ->fromSub($innerQuery, 'ranked_orders')
                 ->where('daily_rank', '<=', 5)
                 ->orderByDesc('created_at')
@@ -117,7 +117,7 @@ class OrderController extends Controller
         }
 
         if (request()->boolean('kitchen_visible') && !request()->boolean('paginate')) {
-            $orders = $orders->filter(fn(Order $order) => $order->isKitchenVisible())->values();
+            // All orders are now kitchen visible immediately
 
             // Further filter items within orders to only show those belonging to the user's section
             if ($user && $user->prep_section_id) {
@@ -147,7 +147,6 @@ class OrderController extends Controller
 
         $data = $request->validate([
             'table_id' => ['nullable', 'exists:restaurant_tables,id'],
-            'reservation_id' => ['nullable', 'exists:reservations,id'],
             'invoice_id' => ['nullable', 'exists:invoices,id'],
             'customer_name' => ['nullable', 'string', 'max:255'],
             'items' => ['required', 'array', 'min:1'],
@@ -158,7 +157,6 @@ class OrderController extends Controller
 
         $order = app(OrderService::class)->createOrder([
             'table_id' => $data['table_id'] ?? null,
-            'reservation_id' => $data['reservation_id'] ?? null,
             'invoice_id' => $data['invoice_id'] ?? null,
             'customer_name' => $data['customer_name'] ?? null,
             'items' => $data['items'],
@@ -191,7 +189,7 @@ class OrderController extends Controller
             'items' => ['required', 'array', 'min:1'],
             'items.*.id' => ['nullable', 'exists:order_items,id'],
             'items.*.menu_item_id' => ['required_without:items.*.id', 'exists:menu_items,id'],
-            'items.*.quantity' => ['required', 'integer', 'min:0'],
+            'items.*.quantity' => ['required', 'integer'], // Removed min:0 to allow negative deltas
             'items.*.notes' => ['nullable', 'string'],
         ]);
 
@@ -239,12 +237,21 @@ class OrderController extends Controller
 
     public function confirm(string $id)
     {
-        $order = Order::with(['items.menuItem', 'table.section', 'reservation'])->findOrFail($id);
+        $order = Order::with(['items.menuItem', 'table.section'])->findOrFail($id);
+
+        \Illuminate\Support\Facades\Log::info("OrderController@confirm: checking authorization", [
+            'user_id' => request()->user()?->id,
+            'order_id' => $order->id,
+            'can_confirm' => request()->user()?->can('confirm', $order),
+        ]);
 
         if (request()->user()->cannot('confirm', $order)) {
             abort(403, 'Not authorized to confirm orders.');
         }
-        if (!$order->confirmed_at) {
+
+        if ($order->status === \App\Enums\OrderStatus::Draft || $order->status === \App\Enums\OrderStatus::AwaitingConfirmation) {
+            $order = app(OrderService::class)->confirmDraftOrder($order, auth()->id());
+        } elseif (!$order->confirmed_at) {
             $order->update(['confirmed_at' => now()]);
             app(OrderService::class)->dispatchProductionTickets($order);
         }

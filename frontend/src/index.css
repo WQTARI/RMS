@@ -1,167 +1,180 @@
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;500;600;700;800;900&family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
 @theme {
-    /* Aura Design System Palette */
-    --color-primary: #6C5DD3;
-    --color-primary-dark: #5a4cb3;
-    --color-primary-light: #f3f2ff;
+    --font-cairo: "Cairo", sans-serif;
+    --font-inter: "Inter", sans-serif;
 
-    --color-secondary: #0F172A;
-    --color-accent: #FF758F;
-    /* Soft Rose Accent */
-    --color-accent-dark: #e6667e;
+    /* Premium Color System */
+    --color-slate-50: #f8fafc;
+    --color-slate-100: #f1f5f9;
+    --color-slate-200: #e2e8f0;
+    --color-slate-300: #cbd5e1;
+    --color-slate-400: #94a3b8;
+    --color-slate-500: #64748b;
+    --color-slate-600: #475569;
+    --color-slate-700: #334155;
+    --color-slate-800: #1e293b;
+    --color-slate-900: #0f172a;
+    --color-slate-950: #020617;
 
-    --color-bg-body: #f0f2ff;
-    --color-bg-card: rgba(255, 255, 255, 0.4);
+    --color-primary: #6366f1;
+    --color-primary-dark: #4f46e5;
+    --color-indigo-500: #6366f1;
+    --color-indigo-600: #4f46e5;
 
-    --color-text-main: #0F172A;
-    --color-text-secondary: #475569;
+    --color-accent: #f43f5e;
+    --color-accent-dark: #e11d48;
 
-    --color-border-glass: rgba(255, 255, 255, 0.3);
+    --radius-3xl: 1.5rem;
+    --radius-4xl: 2rem;
+    --radius-5xl: 3rem;
+
+    --shadow-premium: 0 20px 50px rgba(15, 23, 42, 0.08);
+    --shadow-glass: 0 8px 32px 0 rgba(15, 23, 42, 0.1);
 }
 
 @layer base {
-    body {
-        @apply bg-[#f8fafc] text-slate-900 antialiased selection:bg-indigo-100 selection:text-indigo-700;
-        font-family: 'Inter', sans-serif;
+    :root {
+        --background: 210 40% 98%;
+        --foreground: 222.2 84% 4.9%;
+        --card: 0 0% 100%;
+        --card-foreground: 222.2 84% 4.9%;
+        --popover: 0 0% 100%;
+        --popover-foreground: 222.2 84% 4.9%;
+        --primary: 222.2 47.4% 11.2%;
+        --primary-foreground: 210 40% 98%;
+        --secondary: 210 40% 96.1%;
+        --secondary-foreground: 222.2 47.4% 11.2%;
+        --muted: 210 40% 96.1%;
+        --muted-foreground: 215.4 16.3% 46.9%;
+        --accent: 210 40% 96.1%;
+        --accent-foreground: 222.2 47.4% 11.2%;
+        --destructive: 0 84.2% 60.2%;
+        --destructive-foreground: 210 40% 98%;
+        --border: 214.3 31.8% 91.4%;
+        --input: 214.3 31.8% 91.4%;
+        --ring: 222.2 84% 4.9%;
+        --radius: 0.5rem;
+    }
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 9999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: #94a3b8;
+}
+
+@layer components {
+    .glass {
+        @apply bg-white/80 backdrop-blur-3xl border border-white/60 shadow-premium;
     }
 
-    /* RTL Typography - Cairo */
-    [dir="rtl"],
-    [dir="rtl"] body {
-        font-family: 'Cairo', sans-serif !important;
+    .glass-dark {
+        @apply bg-slate-900/90 backdrop-blur-3xl border border-white/10 shadow-2xl;
     }
-}
 
-/* Aura Ultra-Glass Architecture */
-@utility glass {
-    @apply bg-slate-50/40 backdrop-blur-2xl border border-white/60 shadow-2xl shadow-indigo-500/5;
-}
+    .glass-card {
+        @apply bg-slate-50/50 backdrop-blur-2xl border border-white/80 shadow-glass rounded-[2rem] transition-all duration-500 hover:bg-white/80 hover:shadow-premium;
+    }
 
-@utility glass-dark {
-    @apply bg-slate-900/10 backdrop-blur-xl border border-white/10;
-}
+    .glass-input {
+        @apply w-full bg-slate-100/30 backdrop-blur-md border border-slate-200/50 rounded-2xl px-6 py-4 text-slate-900 placeholder-slate-400 outline-none transition-all duration-300 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 shadow-inner font-cairo;
+    }
 
-/* Standardized Aura Card */
-@utility card-aura {
-    @apply glass rounded-[3rem] transition-all duration-500 hover:-translate-y-2 hover:bg-slate-50/60 hover:shadow-indigo-500/10;
-}
+    .btn-aura {
+        @apply relative overflow-hidden bg-gradient-to-r from-slate-800 to-slate-950 text-white font-black rounded-2xl transition-all duration-500 hover:shadow-[0_10px_30px_rgba(15, 23, 42, 0.3)] hover:scale-[1.02] active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2;
+    }
 
-/* Compact Glass Input - Aura Style */
-@utility glass-input {
-    @apply w-full bg-slate-50/30 backdrop-blur-md border border-white/60 rounded-2xl px-6 py-5 text-slate-900 placeholder:text-slate-400 outline-none transition-all duration-500;
-}
+    .btn-indigo {
+        @apply relative overflow-hidden bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-black rounded-2xl transition-all duration-500 hover:shadow-[0_10px_30px_rgba(79, 70, 229, 0.3)] hover:scale-[1.02] active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2;
+    }
 
-.glass-input:focus {
-    @apply border-primary ring-4 ring-primary/10 bg-slate-50/80;
-}
+    .btn-aura::after,
+    .btn-indigo::after {
+        content: '';
+        @apply absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -translate-x-full transition-transform duration-1000;
+    }
 
-.field-label {
-    @apply text-[11px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2 mb-3 block;
-}
+    .btn-aura:hover::after,
+    .btn-indigo:hover::after {
+        @apply translate-x-full;
+    }
 
-[dir="rtl"] .field-label {
-    @apply ml-0 mr-2;
-}
+    .field-label {
+        @apply text-[11px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1 block mb-2 font-inter;
+    }
 
-@utility btn-aura {
-    @apply relative bg-primary text-white font-black px-10 py-5 rounded-2xl shadow-xl shadow-primary/20 hover:shadow-2xl hover:shadow-primary/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-300 flex items-center justify-center text-center gap-3 overflow-hidden;
-}
-
-@layer utilities {
-
-    /* Mesh Gradient - Highly Vibrant for visibility */
     .bg-mesh {
-        background-color: #f0f2ff;
+        background-color: #f1f5f9;
         background-image:
-            radial-gradient(at 0% 0%, rgba(108, 93, 211, 0.45) 0px, transparent 60%),
-            radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.35) 0px, transparent 60%),
-            radial-gradient(at 100% 100%, rgba(108, 93, 211, 0.3) 0px, transparent 60%),
-            radial-gradient(at 0% 100%, rgba(139, 92, 246, 0.25) 0px, transparent 60%);
-        background-attachment: fixed;
+            radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.1) 0px, transparent 50%),
+            radial-gradient(at 100% 0%, rgba(168, 85, 247, 0.1) 0px, transparent 50%),
+            radial-gradient(at 100% 100%, rgba(236, 72, 153, 0.05) 0px, transparent 50%),
+            radial-gradient(at 0% 100%, rgba(99, 102, 241, 0.05) 0px, transparent 50%);
     }
 
-    /* Geometric subtle pattern */
-    .bg-mesh::after {
-        content: "";
-        position: fixed;
-        inset: 0;
-        background-image: url("data:image/svg+xml,%3Csvg width='32' height='32' viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h32v32H0V0zm1 1h30v30H1V1z' fill='%236C5DD3' fill-opacity='0.02'/%3E%3C/svg%3E");
-        pointer-events: none;
-        z-index: 0;
-    }
-}
-
-@keyframes morph {
-
-    0%,
-    100% {
-        border-radius: 40% 60% 70% 30% / 40% 40% 60% 50%;
+    .animate-morph {
+        animation: morph 15s ease-in-out infinite;
     }
 
-    34% {
-        border-radius: 70% 30% 50% 50% / 30% 30% 70% 70%;
+    @keyframes morph {
+
+        0%,
+        100% {
+            border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+        }
+
+        50% {
+            border-radius: 30% 60% 70% 30% / 50% 60% 30% 60%;
+        }
     }
 
-    67% {
-        border-radius: 30% 60% 60% 40% / 70% 40% 30% 60%;
-    }
-}
-
-.animate-morph {
-    animation: morph 15s ease-in-out infinite;
-}
-
-.group:hover .group-hover\:translate-x-1 {
-    transform: translateX(4px);
-}
-
-[dir="rtl"] .group:hover .group-hover\:translate-x-1 {
-    transform: translateX(-4px);
-}
-
-@keyframes float {
-
-    0%,
-    100% {
-        transform: translateY(0px);
+    .animate-float {
+        animation: float 6s ease-in-out infinite;
     }
 
-    50% {
-        transform: translateY(-8px);
+    @keyframes float {
+
+        0%,
+        100% {
+            transform: translateY(0);
+        }
+
+        50% {
+            transform: translateY(-10px);
+        }
     }
 }
 
-.animate-float {
-    animation: float 6s ease-in-out infinite;
-}
+@layer base {
+    * {
+        border-color: rgba(15, 23, 42, 0.06);
+    }
 
-/* Scrollbar Hide Utility */
-.no-scrollbar::-webkit-scrollbar {
-    display: none;
-}
+    body {
+        @apply bg-slate-100/50 font-cairo antialiased;
+        color: #1e293b;
+        font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    }
 
-.no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-}
-
-/* Hide Number Input Spinners (Global) */
-input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-}
-
-input[type=number] {
-    -moz-appearance: textfield;
-    appearance: none;
-}
-
-/* Arabic font scaling adjustment */
-.Arabic-text-scale[dir="rtl"],
-[dir="rtl"] .Arabic-text-scale {
-    font-size: 1.1em;
-    line-height: 1.6;
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        @apply font-black tracking-tight uppercase text-slate-900;
+    }
 }

@@ -23,9 +23,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        \Illuminate\Support\Facades\Gate::policy(\App\Models\Order::class, \App\Policies\OrderPolicy::class);
+
         \App\Models\Order::observe(\App\Observers\OrderObserver::class);
         \App\Models\Invoice::observe(\App\Observers\InvoiceObserver::class);
-        \App\Models\Reservation::observe(\App\Observers\ReservationObserver::class);
 
         // System Audit Observers
         \App\Models\User::observe(\App\Observers\UserObserver::class);
@@ -35,24 +36,8 @@ class AppServiceProvider extends ServiceProvider
         \App\Models\RestaurantTable::observe(\App\Observers\RestaurantTableObserver::class);
 
         Order::addGlobalScope('withKitchenRelations', function ($builder) {
-            $builder->with(['items.menuItem', 'reservation']);
+            $builder->with(['items.menuItem']);
         });
-
-        // Register all permissions as Gates dynamically from the database
-        $permissions = \Illuminate\Support\Facades\Cache::remember('system_permissions', 86400, function () {
-            try {
-                return \App\Models\Permission::pluck('name')->toArray();
-            } catch (\Exception $e) {
-                // Fallback for migrations/setup
-                return [];
-            }
-        });
-
-        foreach ($permissions as $permission) {
-            \Illuminate\Support\Facades\Gate::define($permission, function ($user) use ($permission) {
-                return $user->hasPermission($permission);
-            });
-        }
 
         RateLimiter::for('login', function (Request $request) {
             return [

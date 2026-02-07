@@ -2,59 +2,68 @@
 
 namespace App\Services;
 
-use App\Enums\InvoiceStatus;
-use App\Enums\OrderStatus;
-use App\Enums\ReservationStatus;
-use App\Enums\TableStatus;
-use App\Events\TableStatusUpdated;
 use App\Models\RestaurantTable;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 
 class TableStatusService
 {
-    public function updateStatus(RestaurantTable $table): RestaurantTable
+    private const DEBOUNCE_SECONDS = 2;
+
+    /**
+     * Update table status with debouncing to prevent excessive broadcasts.
+     */
+    public function updateStatus(RestaurantTable $table): void
     {
-        $now = Carbon::now();
+        $cacheKey = "table_status_update:{$table->id}";
 
-        $hasOpenOrder = $table->orders()
-            ->whereIn('status', [OrderStatus::Open, OrderStatus::InProgress, OrderStatus::Ready])
-            ->exists();
-
-        $hasOpenInvoice = $table->invoices()
-            ->where('status', InvoiceStatus::Open)
-            ->exists();
-
-        $activeReservations = $table->reservations()
-            ->whereIn('status', [ReservationStatus::Created, ReservationStatus::Arrived, ReservationStatus::Seated])
-            ->orderBy('date_time')
-            ->get();
-
-        $hasCurrentReservation = $activeReservations->contains(function ($reservation) use ($now) {
-            $start = Carbon::parse($reservation->date_time);
-            $duration = $reservation->duration_minutes > 0 ? $reservation->duration_minutes : 180;
-            $end = $start->copy()->addMinutes($duration);
-            return $start->lessThanOrEqualTo($now) && $now->lessThan($end);
-        });
-
-        $hasUpcomingReservation = $activeReservations->contains(function ($reservation) use ($now) {
-            $start = Carbon::parse($reservation->date_time);
-            return $start->greaterThan($now);
-        });
-
-        // A table is occupied if it has active orders. 
-        // We ignore "empty" open invoices to prevent ghost occupancy.
-        if ($hasOpenOrder) {
-            $table->status = TableStatus::Occupied;
-        } elseif ($hasCurrentReservation) {
-            $table->status = TableStatus::Reserved;
-        } else {
-            $table->status = TableStatus::Available;
+        // Check if we recently updated this table
+        if (Cache::has($cacheKey)) {
+            // Schedule update for later instead of immediate broadcast
+            Cache::put("table_status_pending:{$table->id}", true, now()->addSeconds(self::DEBOUNCE_SECONDS + 1));
+            return;
         }
 
-        $table->save();
+        // Mark that we're updating this table
+        Cache::put($cacheKey, true, now()->addSeconds(self::DEBOUNCE_SECONDS));
 
+        // Perform the actual status update
+        $this->performStatusUpdate($table);
+
+        // Schedule a follow-up check for pending updates
+        dispatch(function () use ($table) {
+            sleep(self::DEBOUNCE_SECONDS);
+
+            if (Cache::pull("table_status_pending:{$table->id}")) {
+                $this->performStatusUpdate($table->fresh());
+            }
+        })->afterResponse();
+    }
+
+    /**
+     * Perform the actual status update and broadcast.
+     */
+    private function performStatusUpdate(RestaurantTable $table): void
+    {
+        $table->loadMissing(['orders.items', 'orders.invoice']);
+
+        $startTime = microtime(true);
+
+        // Calculate and cache the status
+        $status = $table->getStatusAttribute();
+
+        $duration = (microtime(true) - $startTime) * 1000;
+
+        StructuredLogger::performance('table_status_calculation', $duration, [
+            'table_id' => $table->id,
+            'status' => $status->value,
+        ]);
+
+        // Broadcast the update
         \App\Events\TableStatusUpdated::dispatchSafe($table);
 
-        return $table;
+        StructuredLogger::tableEvent('status_updated', [
+            'table_id' => $table->id,
+            'status' => $status->value,
+        ]);
     }
 }

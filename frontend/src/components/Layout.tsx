@@ -7,8 +7,8 @@ import { useQuery } from '@tanstack/react-query'
 import { fetchPrepSections } from '../api/sections'
 import {
     LayoutDashboard, UtensilsCrossed,
-    ChefHat, ClipboardList, Settings, LogOut, TrendingUp, Archive, Languages,
-    ChevronLeft, ChevronRight, Menu
+    ChefHat, Settings, LogOut, TrendingUp, Archive, Languages,
+    ChevronLeft, ChevronRight, Menu, QrCode
 } from 'lucide-react'
 
 const NavContent = ({
@@ -33,7 +33,7 @@ const NavContent = ({
                         className="w-12 h-12 rounded-xl object-contain mr-4 rtl:mr-0 rtl:ml-4 shadow-sm"
                     />
                 ) : (
-                    <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white mr-4 rtl:mr-0 rtl:ml-4 shadow-lg shadow-primary/30 transform group-hover:rotate-12 transition-transform shrink-0">
+                    <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white mr-4 rtl:mr-0 rtl:ml-4 shadow-lg shadow-indigo-500/30 transform group-hover:rotate-12 transition-transform shrink-0">
                         <LayoutDashboard size={22} strokeWidth={2.5} />
                     </div>
                 )}
@@ -65,11 +65,11 @@ const NavContent = ({
                                             key={item.path}
                                             to={item.path}
                                             className={`group flex items-center gap-4 px-4 py-3.5 rounded-2xl text-[13px] font-black uppercase tracking-widest transition-all duration-500 ${isActive
-                                                ? 'bg-primary text-white shadow-lg shadow-primary/20 translate-x-1 rtl:-translate-x-1'
-                                                : 'text-slate-500 hover:bg-white/60 hover:text-primary hover:translate-x-1 rtl:hover:-translate-x-1'
+                                                ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/20 translate-x-1 rtl:-translate-x-1'
+                                                : 'text-slate-500 hover:bg-white/60 hover:text-indigo-600 hover:translate-x-1 rtl:hover:-translate-x-1'
                                                 }`}
                                         >
-                                            <span className={`transition-all duration-500 transform group-hover:scale-110 group-hover:rotate-6 ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-primary'}`}>
+                                            <span className={`transition-all duration-500 transform group-hover:scale-110 group-hover:rotate-6 ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-indigo-600'}`}>
                                                 {item.icon}
                                             </span>
                                             {item.label}
@@ -141,9 +141,8 @@ export const Layout = () => {
                     path: '/floor-plan',
                     label: t('nav.floor_plan'),
                     icon: <LayoutDashboard size={18} />,
-                    permission: 'manage_reservations'
+                    permission: 'view_only'
                 },
-                { path: '/reservations', label: t('nav.bookings'), icon: <ClipboardList size={20} />, permission: 'manage_reservations' },
                 { path: '/pos', label: t('nav.pos'), icon: <UtensilsCrossed size={20} />, permission: 'create_order' },
             ]
         },
@@ -173,6 +172,7 @@ export const Layout = () => {
         {
             group: 'SYSTEM', items: [
                 { path: '/admin', label: t('nav.management'), icon: <Settings size={20} />, permission: 'manage_settings' },
+                { path: '/qr-codes', label: 'QR Codes', icon: <QrCode size={20} />, permission: 'manage_settings' },
             ]
         }
     ], [prepSections, user, hasPermission, t, i18n.language])

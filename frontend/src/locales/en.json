@@ -11,6 +11,10 @@
         "actions": "Actions",
         "total": "Total",
         "back": "Back",
+        "quantity": "Quantity",
+        "add": "Add",
+        "set_quantity": "Set quantity for this item",
+        "notes_placeholder": "e.g. No onions, Extra spicy...",
         "capacity": "Capacity",
         "guests": "Guests",
         "mapping": "Mapping Restaurant...",
@@ -194,7 +198,8 @@
         "no_records": "No matching records found in archive.",
         "walking_guest": "Walking Guest",
         "grand_total": "Grand Total",
-        "paid_at": "Paid at"
+        "paid_at": "Paid at",
+        "deleted_item": "Deleted Item"
     },
     "admin": {
         "title": "Central Command",
@@ -212,7 +217,36 @@
         "table_areas": "Table Areas",
         "prep_sections": "Prep Sections",
         "new_area": "New Area",
-        "new_prep": "New Section"
+        "new_prep": "New Section",
+        "no_permission_menu": "No permission to manage menu.",
+        "no_permission_tables": "No permission to manage tables.",
+        "no_permission_sections": "No permission to manage sections.",
+        "no_permission_users": "No permission to manage users.",
+        "no_permission_logs": "No permission to view logs.",
+        "no_permission_settings": "No permission to manage restaurant settings.",
+        "item_placeholder": "e.g. Cheese Burger",
+        "prep_time": "Prep (Min)",
+        "image_url": "Image (URL or File)",
+        "file_selected": "File Selected",
+        "choose_file": "Choose File",
+        "selected": "Selected",
+        "create_prep_first": "Please create a Prep Section first.",
+        "failed_load": "Failed to load content",
+        "check_connection": "Please check your connection or permissions",
+        "no_img": "No Img",
+        "add_new_table": "Add New Table",
+        "table_placeholder": "e.g. T-12",
+        "no_areas_found": "No Table Areas found. Please add an Area Section first.",
+        "no_sections_yet": "No sections yet",
+        "full_access_none": "Full Access / None",
+        "terminate_access": "Terminate Access",
+        "pin_digits": "PIN (4-6 Digits)"
+    },
+    "waiter": {
+        "ready_items": "Ready to Serve",
+        "no_items": "All Clear!",
+        "no_items_desc": "No items ready for pickup",
+        "pickup": "Pickup"
     },
     "auth": {
         "sign_in_title": "Sign in to RMS",

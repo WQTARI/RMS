@@ -1,10 +1,9 @@
-export type TableStatus = 'AVAILABLE' | 'RESERVED' | 'OCCUPIED'
-export type OrderItemStatus = 'PENDING' | 'IN_PROGRESS' | 'READY' | 'SERVED' | 'CANCELLED'
-export type OrderStatus = 'OPEN' | 'IN_PROGRESS' | 'READY' | 'CLOSED' | 'CANCELLED'
+export type TableStatus = 'AVAILABLE' | 'BROWSING' | 'OCCUPIED'
+export type OrderItemStatus = 'DRAFT' | 'PENDING' | 'IN_PROGRESS' | 'READY' | 'SERVED' | 'CANCELLED'
+export type OrderStatus = 'DRAFT' | 'AWAITING_CONFIRMATION' | 'OPEN' | 'IN_PROGRESS' | 'READY' | 'CLOSED' | 'CANCELLED'
 export type InvoiceStatus = 'OPEN' | 'PAID' | 'CANCELLED'
 export type MenuCategory = string
 export type PaymentMethod = 'CASH' | 'ELECTRONIC'
-export type ReservationStatus = 'CREATED' | 'ARRIVED' | 'SEATED' | 'CANCELLED' | 'COMPLETED'
 
 export interface TableSection {
   id: number
@@ -27,20 +26,6 @@ export interface RestaurantTable {
   status: TableStatus
   section?: TableSection
   orders?: Order[]
-  reservations?: Reservation[]
-}
-
-export interface Reservation {
-  id: number
-  customer_name: string
-  phone: string
-  date_time: string
-  duration_minutes: number
-  number_of_guests: number
-  table_id: number | null
-  status?: ReservationStatus
-  notes?: string | null
-  table?: RestaurantTable
 }
 
 export interface MenuItem {
@@ -71,7 +56,6 @@ export interface OrderItem {
 export interface Order {
   id: number
   table_id: number | null
-  reservation_id?: number | null
   customer_name?: string | null
   status: OrderStatus
   created_at: string
@@ -79,7 +63,7 @@ export interface Order {
   items: OrderItem[]
   table?: RestaurantTable
   invoice?: Invoice
-  reservation?: Reservation
+  reservation?: any
 }
 
 export interface InvoicePayment {
@@ -121,5 +105,6 @@ export interface User {
   phone?: string | null
   is_active: boolean
   prep_section_id?: number | null
+  pin?: string | null
   roles?: Role[]
 }

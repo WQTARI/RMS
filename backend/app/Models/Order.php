@@ -23,14 +23,16 @@ use LogicException;
 class Order extends Model
 {
     use HasFactory;
+    use \App\Traits\HasOptimisticLocking;
 
     protected static bool $statusWriteAllowed = false;
 
     protected $fillable = [
         'table_id',
-        'reservation_id',
+        'session_token',
         'invoice_id',
         'created_by',
+        'captain_id',
         'status',
         'started_at',
         'confirmed_at',
@@ -49,18 +51,13 @@ class Order extends Model
 
     /**
      * Get the customer name for this order.
-     * Prioritizes invoice name (most up-to-date), then falls back to reservation name.
+     * Prioritizes invoice name (most up-to-date).
      */
     public function getCustomerNameAttribute(): ?string
     {
         // 1. Check associated invoice (where name is persisted for takeaways/dine-in)
         if ($this->invoice && $this->invoice->customer_name) {
             return $this->invoice->customer_name;
-        }
-
-        // 2. Fallback to reservation (if dine-in with booking)
-        if ($this->reservation && $this->reservation->customer_name) {
-            return $this->reservation->customer_name;
         }
 
         return null;
@@ -91,9 +88,17 @@ class Order extends Model
     {
         static::saving(function (Order $order) {
             if ($order->exists && $order->isDirty('status') && !self::$statusWriteAllowed) {
-                throw ValidationException::withMessages([
-                    'status' => 'Order status is derived and cannot be set manually.',
-                ]);
+                // Allow manual override for transitions from Draft/AwaitingConfirmation
+                $oldStatus = $order->getOriginal('status');
+                if (is_string($oldStatus)) {
+                    $oldStatus = OrderStatus::from($oldStatus);
+                }
+
+                if ($oldStatus !== OrderStatus::Draft && $oldStatus !== OrderStatus::AwaitingConfirmation) {
+                    throw ValidationException::withMessages([
+                        'status' => 'Order status is derived and cannot be set manually.',
+                    ]);
+                }
             }
 
             if ($order->isDirty('status') && $order->status === OrderStatus::Closed) {
@@ -116,7 +121,7 @@ class Order extends Model
     {
         parent::refresh();
 
-        $this->loadMissing(['items.menuItem', 'reservation']);
+        $this->loadMissing(['items.menuItem']);
 
         return $this;
     }
@@ -136,9 +141,9 @@ class Order extends Model
         return $this->belongsTo(RestaurantTable::class, 'table_id');
     }
 
-    public function reservation(): BelongsTo
+    public function captain(): BelongsTo
     {
-        return $this->belongsTo(Reservation::class);
+        return $this->belongsTo(User::class, 'captain_id');
     }
 
     public function invoice(): BelongsTo
@@ -161,42 +166,6 @@ class Order extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function kitchenVisibleAt(): ?Carbon
-    {
-        if (!$this->reservation) {
-            return $this->started_at ?? $this->created_at;
-        }
-
-        $this->assertRelationLoaded('items');
-        $this->assertMenuItemsLoaded();
-
-        // Pre-orders appear in the kitchen only when prep should start.
-        $maxPrep = $this->items
-            ->map(fn(OrderItem $item) => $item->menuItem?->prep_time_minutes)
-            ->filter()
-            ->max();
-
-        if (!$maxPrep) {
-            return Carbon::parse($this->reservation->date_time);
-        }
-
-        return Carbon::parse($this->reservation->date_time)->subMinutes((int) $maxPrep);
-    }
-
-    public function isKitchenVisible(?Carbon $now = null): bool
-    {
-        if ($this->confirmed_at) {
-            return true;
-        }
-
-        $visibleAt = $this->kitchenVisibleAt();
-        if (!$visibleAt) {
-            return true;
-        }
-
-        return ($now ?? Carbon::now())->greaterThanOrEqualTo($visibleAt);
-    }
-
     public function deriveStatusFromItems(?Collection $items = null): OrderStatus
     {
         if (!$items) {
@@ -205,10 +174,16 @@ class Order extends Model
 
         $items = $items ?? $this->items;
         if ($items->isEmpty()) {
-            return OrderStatus::Open;
+            return $this->status === OrderStatus::Draft ? OrderStatus::Draft : OrderStatus::Open;
         }
 
         $statuses = $items->pluck('status');
+
+        // If all items are Draft, the order remains Draft
+        if ($statuses->every(fn(OrderItemStatus $status) => $status === OrderItemStatus::Draft)) {
+            return OrderStatus::Draft;
+        }
+
         if ($statuses->every(fn(OrderItemStatus $status) => $status === OrderItemStatus::Pending)) {
             return OrderStatus::Open;
         }
@@ -227,7 +202,7 @@ class Order extends Model
 
     public function syncStatusFromItems(?Collection $items = null): void
     {
-        if ($this->status === OrderStatus::Closed) {
+        if ($this->status === OrderStatus::Closed || $this->status === OrderStatus::AwaitingConfirmation) {
             return;
         }
 

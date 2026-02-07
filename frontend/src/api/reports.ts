@@ -1,5 +1,5 @@
 import { apiClient } from './client'
-import type { Order, Reservation } from '../types'
+import type { Order } from '../types'
 
 export const fetchDailySales = async (date?: string) => {
   const { data } = await apiClient.get('/reports/daily-sales', { params: { date } })
@@ -21,10 +21,6 @@ export const fetchTopItems = async (limit?: number) => {
   return data as { menu_item_id: number; qty: number; menu_item?: { name: string } }[]
 }
 
-export const fetchReservationsReport = async (date?: string) => {
-  const { data } = await apiClient.get<Reservation[]>('/reports/reservations', { params: { date } })
-  return data
-}
 
 export const fetchTablePerformance = async () => {
   const { data } = await apiClient.get('/reports/table-performance')
@@ -47,11 +43,3 @@ export const fetchSalesTrend = async (days = 30) => {
   return data as { date: string; total: number }[]
 }
 
-export const fetchReservationStats = async (days = 30) => {
-  const { data } = await apiClient.get('/reports/reservation-stats', { params: { days } })
-  return data as {
-    by_status: { status: string; count: number }[];
-    total_guests: number;
-    total_reservations: number;
-  }
-}

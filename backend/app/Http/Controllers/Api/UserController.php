@@ -33,6 +33,7 @@ class UserController extends Controller
             'prep_section_id' => ['nullable', 'exists:prep_sections,id'],
             'role_ids' => ['nullable', 'array'],
             'role_ids.*' => ['exists:roles,id'],
+            'pin' => ['nullable', 'string', 'size:4'],
         ]);
 
         $user = User::create([
@@ -42,6 +43,7 @@ class UserController extends Controller
             'password' => Hash::make($data['password']),
             'is_active' => $data['is_active'] ?? true,
             'prep_section_id' => $data['prep_section_id'] ?? null,
+            'pin' => $data['pin'] ?? null,
         ]);
 
         if (!empty($data['role_ids'])) {
@@ -81,6 +83,7 @@ class UserController extends Controller
             'prep_section_id' => ['nullable', 'exists:prep_sections,id'],
             'role_ids' => ['nullable', 'array'],
             'role_ids.*' => ['exists:roles,id'],
+            'pin' => ['nullable', 'string', 'size:4'],
         ]);
 
         if (!empty($data['password'])) {
@@ -89,13 +92,20 @@ class UserController extends Controller
             unset($data['password']);
         }
 
-        $user->update($data);
-
         if (array_key_exists('role_ids', $data)) {
             $user->roles()->sync($data['role_ids'] ?? []);
             $user->load('roles');
             $user->syncPrepSectionFromRoles();
         }
+
+        // Handle PIN explicitly: if empty string provided, treat as null.
+        // If not provided in request (e.g. partial update), do nothing.
+        if ($request->has('pin')) {
+            $pin = $request->input('pin');
+            $data['pin'] = empty($pin) ? null : $pin;
+        }
+
+        $user->update($data);
 
         return response()->json($user->load('roles.permissions'));
     }

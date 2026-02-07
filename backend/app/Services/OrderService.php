@@ -28,36 +28,33 @@ class OrderService
         return DB::transaction(function () use ($payload) {
             $tableId = isset($payload['table_id']) ? (int) $payload['table_id'] : null;
 
-            if (isset($payload['invoice_id'])) {
-                $invoice = Invoice::findOrFail($payload['invoice_id']);
+            $status = isset($payload['status'])
+                ? ($payload['status'] instanceof OrderStatus ? $payload['status'] : OrderStatus::from($payload['status']))
+                : OrderStatus::Open;
+            $sessionToken = $payload['session_token'] ?? null;
+
+            if ($status === OrderStatus::Draft) {
+                $invoice = null;
             } else {
-                $invoice = app(InvoiceService::class)->openInvoice($tableId, $payload['customer_name'] ?? null);
+                if (isset($payload['invoice_id'])) {
+                    $invoice = Invoice::findOrFail($payload['invoice_id']);
+                } else {
+                    $invoice = app(InvoiceService::class)->openInvoice($tableId, $payload['customer_name'] ?? null);
+                }
             }
 
             $order = Order::create([
                 'table_id' => $tableId,
-                'reservation_id' => $payload['reservation_id'] ?? null,
-                'invoice_id' => $invoice->id,
+                'session_token' => $sessionToken,
+                'invoice_id' => $invoice?->id,
                 'created_by' => $payload['created_by'] ?? null,
                 'notes' => $payload['notes'] ?? null,
-                'status' => OrderStatus::Open,
+                'status' => $status,
                 'started_at' => now(),
+                'confirmed_at' => ($status === OrderStatus::Draft || $status === OrderStatus::AwaitingConfirmation) ? null : now(),
             ]);
 
             $this->updateOrderItems($order, $payload['items'] ?? [], $payload['created_by'] ?? null);
-
-            if (!empty($payload['reservation_id'])) {
-                $reservation = Reservation::find($payload['reservation_id']);
-                Reservation::whereKey($payload['reservation_id'])
-                    ->update(['status' => ReservationStatus::Seated]);
-                // Convert at or after reservation time = customer arrived; make immediately kitchen-visible.
-                if ($reservation && Carbon::parse($reservation->date_time)->lessThanOrEqualTo(now())) {
-                    $order->update(['confirmed_at' => now()]);
-                }
-            } else {
-                // POS orders (no reservation) are immediate.
-                $order->update(['confirmed_at' => now()]);
-            }
 
             // Sync invoice total immediately
             $this->syncInvoiceTotal($order->invoice_id);
@@ -69,13 +66,12 @@ class OrderService
                 $this->snapshotItems($order->items),
                 $payload['created_by'] ?? null,
                 null,
-                OrderStatus::Open->value,
+                $status->value,
                 'New order initiated'
             );
 
-            \App\Events\OrderCreated::dispatchSafe($order->load('items'));
-
-            if ($order->confirmed_at) {
+            if ($status !== OrderStatus::Draft && $status !== OrderStatus::AwaitingConfirmation) {
+                \App\Events\OrderCreated::dispatchSafe($order->load('items'));
                 $this->dispatchProductionTickets($order);
             }
 
@@ -127,17 +123,47 @@ class OrderService
                         $modifiedItemIds[] = $orderItem->id;
                     }
                 } else {
-                    // Add new item
+                    // Add new item or update existing if matches
                     $menuItem = MenuItem::findOrFail($itemData['menu_item_id']);
-                    $orderItem = OrderItem::create([
-                        'order_id' => $order->id,
-                        'menu_item_id' => $menuItem->id,
-                        'prep_section_id' => $menuItem->prep_section_id,
-                        'quantity' => $itemData['quantity'],
-                        'price' => $menuItem->price,
-                        'notes' => $itemData['notes'] ?? null,
+
+                    // Check if identical item exists (same menu_item_id and notes)
+                    Log::info('OrderService: Checking for existing item', [
+                        'menu_item_id' => $itemData['menu_item_id'],
+                        'notes' => $itemData['notes'] ?? 'null',
+                        'order_items' => $order->items->map(fn($i) => ['id' => $i->id, 'menu_item_id' => $i->menu_item_id, 'notes' => $i->notes])
                     ]);
-                    $modifiedItemIds[] = $orderItem->id;
+
+                    $existingItem = $order->items->first(function ($item) use ($itemData) {
+                        // Loose comparison for ID, strict for notes
+                        return $item->menu_item_id == $itemData['menu_item_id'] &&
+                            ($item->notes ?? '') === ($itemData['notes'] ?? '');
+                    });
+
+                    Log::info('OrderService: Match result', ['found' => $existingItem ? $existingItem->id : 'false']);
+
+                    if ($existingItem) {
+                        $newQuantity = $existingItem->quantity + $itemData['quantity'];
+                        if ($newQuantity <= 0) {
+                            $existingItem->update(['status' => OrderItemStatus::Cancelled]);
+                        } else {
+                            $existingItem->update([
+                                'quantity' => $newQuantity
+                            ]);
+                        }
+                        $modifiedItemIds[] = $existingItem->id;
+                    } else {
+                        if ($itemData['quantity'] > 0) {
+                            $orderItem = OrderItem::create([
+                                'order_id' => $order->id,
+                                'menu_item_id' => $menuItem->id,
+                                'prep_section_id' => $menuItem->prep_section_id,
+                                'quantity' => $itemData['quantity'],
+                                'price' => $menuItem->price,
+                                'notes' => $itemData['notes'] ?? null,
+                            ]);
+                            $modifiedItemIds[] = $orderItem->id;
+                        }
+                    }
                 }
             }
 
@@ -329,6 +355,57 @@ class OrderService
             app(ReportCacheService::class)->clearSalesAggregates();
 
             event(new \App\Events\OrderStatusUpdated($order->fresh()));
+
+            return $order->refresh();
+        });
+    }
+
+    public function confirmDraftOrder(Order $order, ?int $actorId = null): Order
+    {
+        return DB::transaction(function () use ($order, $actorId) {
+            if ($order->status !== OrderStatus::Draft && $order->status !== OrderStatus::AwaitingConfirmation) {
+                throw new \RuntimeException('Only draft orders can be confirmed.');
+            }
+
+            // 1. Create invoice if doesn't exist
+            if (!$order->invoice_id) {
+                $invoice = app(InvoiceService::class)->openInvoice($order->table_id, $order->customer_name);
+                $order->update(['invoice_id' => $invoice->id]);
+            }
+
+            // 2. Set all items to Pending (from Draft)
+            foreach ($order->items as $item) {
+                if ($item->status === OrderItemStatus::Draft) {
+                    $item->update(['status' => OrderItemStatus::Pending]);
+                }
+            }
+
+            // 3. Confirm order logic
+            Order::allowStatusWrite(fn() => $order->update([
+                'status' => OrderStatus::Open,
+                'confirmed_at' => now(),
+                'created_by' => $actorId, // Captain who confirmed it
+            ]));
+
+            $this->syncInvoiceTotal($order->invoice_id);
+
+            $this->auditOrderMutation(
+                $order,
+                'order_draft_confirmed',
+                $this->snapshotItems($order->items),
+                $this->snapshotItems($order->items),
+                $actorId,
+                OrderStatus::Draft->value,
+                OrderStatus::Open->value,
+                'Draft order confirmed by staff'
+            );
+
+            \App\Events\OrderCreated::dispatchSafe($order->load('items'));
+            $this->dispatchProductionTickets($order);
+
+            if ($order->table) {
+                app(TableStatusService::class)->updateStatus($order->table);
+            }
 
             return $order->refresh();
         });

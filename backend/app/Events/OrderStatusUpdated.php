@@ -3,31 +3,50 @@
 namespace App\Events;
 
 use App\Models\Order;
-use Illuminate\Broadcasting\PrivateChannel;
+use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
-use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Bus\Queueable;
 
-class OrderStatusUpdated implements ShouldBroadcast, ShouldQueue
+class OrderStatusUpdated implements ShouldBroadcastNow
 {
-    use Dispatchable, InteractsWithSockets, SerializesModels, Queueable;
+    use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public function __construct(public Order $order)
+    public Order $order;
+
+    public function __construct(Order $order)
     {
+        $this->order = $order->loadMissing(['items.menuItem', 'table.section']);
     }
 
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('orders'),
+            new Channel('orders'),
+            new Channel("table.{$this->order->table_id}"),
         ];
     }
 
-    public function broadcastAs(): string
+    public function broadcastWith(): array
     {
-        return 'OrderStatusUpdated';
+        return [
+            'order' => $this->order->toArray(),
+        ];
+    }
+
+    /**
+     * Safely dispatch event with error handling.
+     */
+    public static function dispatchSafe(Order $order): void
+    {
+        try {
+            static::dispatch($order);
+        } catch (\Throwable $e) {
+            \App\Services\StructuredLogger::error($e, [
+                'event' => 'OrderStatusUpdated',
+                'order_id' => $order->id,
+            ]);
+        }
     }
 }

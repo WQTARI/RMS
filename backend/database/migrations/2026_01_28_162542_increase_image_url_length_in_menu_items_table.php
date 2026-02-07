@@ -3,15 +3,17 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
     public function up(): void
     {
-        \Illuminate\Support\Facades\DB::statement('ALTER TABLE menu_items MODIFY image_url TEXT');
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement('ALTER TABLE menu_items MODIFY image_url TEXT');
+        }
     }
 
     /**
@@ -19,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        \Illuminate\Support\Facades\DB::statement('ALTER TABLE menu_items MODIFY image_url VARCHAR(255)');
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement('ALTER TABLE menu_items MODIFY image_url VARCHAR(255)');
+        }
     }
 };

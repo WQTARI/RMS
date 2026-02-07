@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Invoice;
 use App\Models\MenuItem;
 use App\Models\OrderItem;
-use App\Models\Reservation;
 use App\Models\RestaurantTable;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
@@ -97,21 +96,6 @@ class ReportController extends Controller
         return response()->json($rows);
     }
 
-    public function reservations()
-    {
-        $date = request('date') ? Carbon::parse(request('date')) : Carbon::today();
-
-        $rows = Cache::remember(
-            'reports:reservations:' . $date->toDateString(),
-            now()->addMinutes(2),
-            fn() => Reservation::with('table.section')
-                ->whereDate('date_time', $date)
-                ->orderBy('date_time')
-                ->get()
-        );
-
-        return response()->json($rows);
-    }
 
     public function tablePerformance()
     {
@@ -202,25 +186,4 @@ class ReportController extends Controller
         return response()->json($results);
     }
 
-    public function reservationStats()
-    {
-        $days = (int) (request('days') ?? 30);
-
-        $stats = Cache::remember(
-            'reports:reservation-stats:' . $days,
-            now()->addMinutes(5),
-            fn() => [
-                'by_status' => Reservation::where('created_at', '>=', now()->subDays($days))
-                    ->select('status', DB::raw('count(*) as count'))
-                    ->groupBy('status')
-                    ->get(),
-                'total_guests' => (int) Reservation::where('created_at', '>=', now()->subDays($days))
-                    ->whereIn('status', [\App\Enums\ReservationStatus::Arrived, \App\Enums\ReservationStatus::Seated, \App\Enums\ReservationStatus::Completed])
-                    ->sum('number_of_guests'),
-                'total_reservations' => Reservation::where('created_at', '>=', now()->subDays($days))->count(),
-            ]
-        );
-
-        return response()->json($stats);
-    }
 }
