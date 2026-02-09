@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { ShoppingCart, Plus, Minus, Trash2, Check, Lock, X, LogOut, ChevronRight } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { Dialog } from '../components/Dialog'
 import { formatCurrency } from '../utils/format'
 
 interface MenuItem {
@@ -37,7 +36,7 @@ export const CustomerMenuPage = () => {
     const [captainName, setCaptainName] = useState('')
 
     // Fetch menu items
-    const { data: menuItems = [], isLoading } = useQuery({
+    const { data: menuItems = [] } = useQuery({
         queryKey: ['menu-items'],
         queryFn: async () => {
             const res = await fetch(`${import.meta.env.VITE_API_URL}/menu-items`)

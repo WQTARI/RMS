@@ -59,11 +59,9 @@ export interface Order {
   customer_name?: string | null
   status: OrderStatus
   created_at: string
-  started_at?: string | null
   items: OrderItem[]
   table?: RestaurantTable
   invoice?: Invoice
-  reservation?: any
 }
 
 export interface InvoicePayment {

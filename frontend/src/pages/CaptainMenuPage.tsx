@@ -48,7 +48,7 @@ export const CaptainMenuPage = () => {
     })
 
     // Fetch menu items
-    const { data: menuItems = [], isLoading } = useQuery({
+    const { data: menuItems = [] } = useQuery({
         queryKey: ['menu-items'],
         queryFn: async () => {
             const res = await fetch(`${import.meta.env.VITE_API_URL}/menu-items`)
@@ -168,10 +168,23 @@ export const CaptainMenuPage = () => {
     }, {})
 
     // Cart functions
-    const categories = ['all', ...new Set(menuItems.map((item: MenuItem) => item.category))] as string[]
-    const filteredItems = activeCategory === 'all'
-        ? menuItems
-        : menuItems.filter((item: MenuItem) => item.category === activeCategory)
+    // Scroll to category
+    const scrollToCategory = (cat: string) => {
+        const el = document.getElementById(`cat-${cat}`)
+        if (el) {
+            const offset = 80 // Header height
+            const bodyRect = document.body.getBoundingClientRect().top
+            const elementRect = el.getBoundingClientRect().top
+            const elementPosition = elementRect - bodyRect
+            const offsetPosition = elementPosition - offset
+
+            window.scrollTo({
+                top: offsetPosition,
+                behavior: 'smooth'
+            })
+            setActiveCategory(cat)
+        }
+    }
 
     const addToCart = (item: MenuItem) => {
         const existing = cart.find(i => i.id === item.id)

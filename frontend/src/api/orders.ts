@@ -18,7 +18,6 @@ export type CreateOrderPayload = {
   table_id?: number | null
   invoice_id?: number | null
   customer_name?: string
-  reservation_id?: number
   items: { menu_item_id: number; quantity: number; notes?: string }[]
 }
 

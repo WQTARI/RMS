@@ -9,7 +9,7 @@ import { PageHeader } from '../components/PageHeader'
 import { formatCurrency, formatLiteralTime, formatSmartDate } from '../utils/format'
 import {
     Search, Calendar, ChevronLeft, ChevronRight,
-    Receipt, Hash, Clock, ArrowLeft
+    Receipt, Hash, ArrowLeft
 } from 'lucide-react'
 
 export const OrderHistoryPage = () => {
@@ -134,7 +134,7 @@ export const OrderHistoryPage = () => {
                                                 </div>
                                                 <h3 className="text-3xl font-black text-slate-900 tracking-tighter uppercase leading-none">
                                                     {(() => {
-                                                        const name = order.customer_name || order.reservation?.customer_name || order.invoice?.customer_name
+                                                        const name = order.customer_name || order.invoice?.customer_name
                                                         return (!name || name === 'WALKING_GUEST')
                                                             ? t('reports.walking_guest')
                                                             : name
@@ -151,12 +151,6 @@ export const OrderHistoryPage = () => {
                                                 <div className="flex items-center gap-2.5 text-[10px] font-black text-slate-400 uppercase tracking-widest">
                                                     <div className="size-7 rounded-lg bg-indigo-50 text-indigo-500 flex items-center justify-center"><Receipt className="size-4" /></div>
                                                     {order.table.name}
-                                                </div>
-                                            )}
-                                            {order.reservation && (
-                                                <div className="flex items-center gap-2.5 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                                                    <div className="size-7 rounded-lg bg-amber-50 text-amber-500 flex items-center justify-center"><Clock className="size-4" /></div>
-                                                    {formatLiteralTime(order.reservation.date_time)}
                                                 </div>
                                             )}
                                             <div className="flex items-center gap-2.5 text-[10px] font-black text-slate-400 uppercase tracking-widest">
